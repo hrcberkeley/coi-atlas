@@ -32,8 +32,21 @@ function ensure(y) {
           }
         }
       }
-      // Layer 2 (grouped by wording, no heading): {"<doc>": [[k_from, k_to, family], …]} → p.fm and p.fw.
-      for (const [key, ranges] of Object.entries(wr)) {
+      // Passage classifier, revision 7: {v: 2, c: two chars per passage of p/<y>.json} — family letter (A = 0) or "-" not content or "." not scored,
+      // then strength 0-9. Not content (strength >= 6) leaves topic views; an unfiled passage joins its family at strength >= 6 (p.fw: by wording).
+      if (wr.v === 2) {
+        const c = wr.c || '';
+        ps.forEach((p, i) => {
+          const f = c[2 * i], s = +c[2 * i + 1];
+          if (!f || f === '.') return;
+          p.ws = s;
+          if (f === '-') { if (s >= 6) p.nc = 1; return; }
+          p.wc = f.charCodeAt(0) - 65;
+          if (!p.fm && s >= 6) { p.fm = [p.wc]; p.fw = [p.wc]; }
+        });
+      }
+      // Layer 2, older form (grouped by wording, no heading): {"<doc>": [[k_from, k_to, family], …]} → p.fm and p.fw.
+      else for (const [key, ranges] of Object.entries(wr)) {
         const d = byEcoi.get(key) ?? (+key < docs.length ? +key : null);
         if (d == null) continue;
         for (const [a, b, fam] of ranges) for (let k = a; k <= b; k++) { const p = byKey.get(d + '.' + k); if (p) { (p.fm ||= []).push(fam); (p.fw ||= []).push(fam); } }
@@ -152,6 +165,9 @@ async function answer() {
 }
 const vecReady = () => order.every(y => vecs[y]);
 
+// Topic strength: a heading or question filing (10) above a filing by wording alone, then the classifier's strength for that family.
+const topicOf = q => (q.fam !== '' && q.fam != null ? +q.fam : q.topic ? topicFam[q.topic] ?? null : null);
+const tscore = (p, f) => ((p.fw || []).includes(f) ? 0 : 10) + (p.wc === f ? p.ws : 0);
 const slim = p => { const { _l, ...rest } = p; const prev = byKey.get(p.d + '.' + (p.k - 1)); if (prev) rest.bt = prev.t.slice(0, 160); return rest; };
 const newestFirst = (a, b) => {
   const da = docs[a.d].date || '', db = docs[b.d].date || '';
@@ -197,7 +213,11 @@ async function who(m) {
     (by.get(s) || by.set(s, []).get(s)).push(p);
   }
   const date = p => docs[p.d].date || '';
-  const newer = (a, b) => (date(a) > date(b) || (date(a) === date(b) && (a.d < b.d || (a.d === b.d && (a.pg < b.pg || (a.pg === b.pg && a.k < b.k)))))); // a before b in "newest first"
+  const f = topicOf(q), ts = p => (f == null ? 0 : tscore(p, f));
+  const order3 = (a, b) => a.d < b.d || (a.d === b.d && (a.pg < b.pg || (a.pg === b.pg && a.k < b.k)));
+  // a before b in "newest first"; on the same date the stronger topic filing first
+  const newer = (a, b) => (date(a) !== date(b) ? date(a) > date(b) : ts(a) !== ts(b) ? ts(a) > ts(b) : order3(a, b));
+  const older = (a, b) => (date(a) !== date(b) ? date(a) < date(b) : ts(a) !== ts(b) ? ts(a) > ts(b) : !order3(a, b) && a !== b);
   const best = (list, cmp) => list.reduce((x, p) => (x == null || cmp(p, x) ? p : x), null);
   const closer = (a, b) => rank.get(a.d + '.' + a.k) < rank.get(b.d + '.' + b.k);
   textIndex ||= (() => { const T = new Map(); for (const y of order) for (const p of files[y]) if (!p.f) (T.get(p.t) || T.set(p.t, []).get(p.t)).push(p); return T; })();
@@ -212,7 +232,7 @@ async function who(m) {
   for (const [s, list] of by) {
     const docsN = new Set(list.map(p => p.d)).size;
     const pickNew = l => best(l, rank ? closer : newer);
-    const pickOld = l => best(l, rank ? closer : (a, b) => !newer(a, b) && a !== b);
+    const pickOld = l => best(l, rank ? closer : older);
     let a, b, mode;
     if (years) { mode = 'year'; a = pickOld(list); b = pickNew(list); }
     else if (key) { mode = 'key'; a = pickNew(list.filter(p => date(p) && date(p).slice(0, key.length) <= key)); b = pickNew(list); }
@@ -235,12 +255,13 @@ async function list(m) {
   const ysel = years ? new Set(years.map(String)) : null;
   const accept = acceptor(q, ctx, sources, years);
   const best = !rank && ord !== 'new' && ctx.W.tokens.length > 0;   // exact words: best match first unless asked for newest
-  const key = JSON.stringify([q, sources, years, best]);
+  const strong = !rank && !best && ord !== 'new' && topicOf(q) != null;   // a topic alone: strongest filings first
+  const key = JSON.stringify([q, sources, years, best, strong]);
   let c = listCache.get(key);
   if (!c) { listCache.clear(); c = { years: {}, all: null }; listCache.set(key, c); }
   const want = offset + limit;
 
-  if (q.clock === 'pub' && !rank && !best) {
+  if (q.clock === 'pub' && !rank && !best && !strong) {
     // Year by year from the newest, loading only what the requested page needs.
     const cand = order.filter(y => y !== 'undated' && (!ysel || ysel.has(y)) && inRange(y, q)).sort((a, b) => b - a);
     if (order.includes('undated') && (!ysel || ysel.has('undated')) && q.lo == null) cand.push('undated');
@@ -264,6 +285,9 @@ async function list(m) {
       const sc = await bmScorer(ctx.W.tokens);
       for (const x of c.all) x.s = sc(x.p);
       c.all.sort((a, b) => b.s - a.s || newestFirst(a.p, b.p));
+    } else if (strong) {
+      const f = topicOf(q);
+      c.all.sort((a, b) => tscore(b.p, f) - tscore(a.p, f) || newestFirst(a.p, b.p));
     } else c.all.sort(rank ? (a, b) => rank.get(a.p.d + '.' + a.p.k) - rank.get(b.p.d + '.' + b.p.k) : (a, b) => newestFirst(a.p, b.p));
   }
   return { items: c.all.slice(offset, want).map(x => ({ ...slim(x.p), bands: x.b })), end: want >= c.all.length };

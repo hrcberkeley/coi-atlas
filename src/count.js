@@ -192,6 +192,7 @@ export function addPassages(T, ps, ctx, q) {
 
 // Document-level counts are exact when no passage-level condition is in force.
 export const onTopic = (p, q) =>
+  !(p.nc && (q.topic || (q.fam !== '' && q.fam != null))) &&
   (q.topic === '' || q.topic == null || [].concat(p.tp ?? []).includes(+q.topic)) &&
   (q.fam === '' || q.fam == null || ((p.fm || []).includes(+q.fam) && !(q.hw && (p.fw || []).includes(+q.fam))));
 

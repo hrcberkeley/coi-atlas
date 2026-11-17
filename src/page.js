@@ -198,6 +198,7 @@ function rail(app, el) {
     <button class="copyq big" data-copyq>Copy quote and citation</button>
     <div class="passage-text">
       <p class="grey small">Selected passage · p. ${p.pg} <button class="linkish small" data-clearsel>Clear</button></p>
+      ${p.fw?.includes(+app.q?.fam) ? '<p class="mech mlabel">Grouped by its wording; no heading in the report files it here</p>' : ''}
       ${p.bt ? `<p class="before"><span class="mlabel">Before this</span>“${esc(p.bt)}${p.bt.length >= 160 ? '…' : ''}”</p>` : ''}
       <blockquote class="src">${marked(p.t, app.re)}</blockquote>
       ${!en && p.en ? `<div class="mech"><span class="mlabel">Machine translated, may be incomplete · document catalogued as ${esc(doc.lang)}</span><p>${marked(p.en, app.re)}</p></div>` : !en ? `<p class="mech mlabel">catalogued as ${esc(doc.lang)} · not yet translated</p>` : ''}

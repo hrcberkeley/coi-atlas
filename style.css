@@ -366,7 +366,9 @@ li.pinned .newer { color: var(--ink); }
   .land { grid-template-columns: 1fr; }
   .where { position: static; max-height: none; }
   .page-grid { grid-template-columns: 1fr; overflow-y: auto; }
-  .top { flex-wrap: wrap; padding: 10px 16px; gap: 10px 16px; }
+  .top { flex-wrap: wrap; padding: 10px 16px; gap: 10px 16px; position: static; }
+  .where { order: 2; }
+  .wcolhead { top: 0; }
   .top .brand { flex: 1; }
   .top .caseline { order: 3; flex: 1 1 100%; }
   .search-help, .cl-row.chips { margin-left: 0; }

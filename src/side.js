@@ -59,7 +59,7 @@ export async function renderSide(app, el) {
     <div class="who-head"><h2 class="who-title">${title(app, withData.length)}</h2>${close}</div>
     ${silent.length ? `<p class="silence"><span class="grey">Sources with nothing on this (${silent.length}):</span> ${silent.map(s => esc(s.short)).join(', ')}</p>` : ''}
     ${hidden.size ? `<p class="grey small">Hidden: ${[...hidden].map(k => `${esc(app.src(k).short)} <button class="linkish" data-unhide="${esc(k)}">show</button>`).join(' · ')}</p>` : ''}
-    ${state.q.trim() && !state.lk ? `<p class="small order" role="group" aria-label="Order of passages in lists"><span class="grey">Lists show</span> <button class="linkish" data-ord=""${state.o === 'n' ? '' : ' aria-pressed="true"'}>best match for your words first</button> · <button class="linkish" data-ord="n"${state.o === 'n' ? ' aria-pressed="true"' : ''}>Newest first</button></p>` : ''}
+    ${(state.q.trim() || state.fm || state.tp) && !state.lk ? `<p class="small order" role="group" aria-label="Order of passages in lists"><span class="grey">Lists show</span> <button class="linkish" data-ord=""${state.o === 'n' ? '' : ' aria-pressed="true"'}>${state.q.trim() ? 'best match for your words first' : 'clearest on the topic first'}</button> · <button class="linkish" data-ord="n"${state.o === 'n' ? ' aria-pressed="true"' : ''}>Newest first</button></p>` : ''}
     <div class="who-body"><p class="grey small" role="status">Reading the passages…</p></div>
   </div>`;
   el.querySelector('[data-back]').onclick = back;

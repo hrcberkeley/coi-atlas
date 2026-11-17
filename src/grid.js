@@ -52,7 +52,10 @@ export function counterLine(app) {
   const opened = T.opened == null ? '' : ` · opened ${num(T.opened)}`;
   const nt = state.t ? `<span class="you"> · types: ${state.t.split(',').filter(c => c && c !== 'none').length} of ${shownTypes(app).length}</span>` : '';
   const nf = activeFilters() ? `<span class="you"> · filters: ${activeFilters()} on</span>` : '';
-  return `<span class="counter tnum">${plural(T.total, 'passage', 'passages')} · ${plural(nDocs, 'document', 'documents')} · ${plural(nSrc, 'source', 'sources')}${opened}${nt}${nf}</span>${progress(app)}`;
+  // The welcome map counts every document; here only those with text of their own to show.
+  const all = app.S?.docs.length, bare = !state.q && !state.lk && !state.fm && !state.tp && !state.w && !state.t && !state.r && !activeFilters();
+  const ofAll = bare && all > nDocs ? ` <span class="grey" title="${num(all - nDocs)} more documents have no text of their own to show: scans without readable text, or text that only repeats other reports.">of ${num(all)}</span>` : '';
+  return `<span class="counter tnum">${plural(T.total, 'passage', 'passages')} · ${plural(nDocs, 'document', 'documents')}${ofAll} · ${plural(nSrc, 'source', 'sources')}${opened}${nt}${nf}</span>${progress(app)}`;
 }
 
 export function progress(app) {
@@ -108,7 +111,7 @@ function zeroHint(app) {
   if (!T || T.total || !T.parts || !W.tokens.length || !app.progress.complete) return '';
   const tok = W.tokens.map((t, i) => `${esc(t.label)} ${num(T.parts.tokens[i])}`).join(' · ');
   const grp = W.groups.filter(g => g.length > 1).map(g => `${esc(g.map(t => t.label).join(' '))} together ${num(T.parts.groups[W.groups.indexOf(g)])}`).join(' · ');
-  return `<p class="empty-note">Nothing matches every part of this search. Each part alone: ${tok}${grp ? ' · ' + grp : ''}. Clear a chip, or choose other years, to widen it.</p>`;
+  return `<p class="empty-note">Nothing matches every part of this search. Each part alone: ${tok}${grp ? ' · ' + grp : ''}. Clear a chip, or choose other years, to widen it.${activeFilters() ? ` These counts are after your filters (${activeFilters()} on); <button class="linkish" data-fclear>clear all filters</button> to see whether they are the cause.` : ''}</p>`;
 }
 
 export function renderLandscape(app, el) {
@@ -433,7 +436,7 @@ function wire(app, el) {
     if (lo > 999 && hi > 999) set({ r: `${Math.min(lo, hi)}-${Math.max(lo, hi)}`, y: '' });
     else if (!b.value) set({ r: '', y: '' });
   }));
-  ww.querySelector('[data-fclear]')?.addEventListener('click', () => { app.refocus = '[data-filters]'; set({ lg: '', sk: '', sc: '', le: '', mc: '', r: '', y: '' }); });
+  ww.querySelectorAll('[data-fclear]').forEach(b => b.addEventListener('click', () => { app.refocus = '[data-filters]'; set({ lg: '', sk: '', sc: '', le: '', mc: '', r: '', y: '' }); }));
   ww.querySelector('[data-ff]')?.addEventListener('click', () => set({ ff: state.ff ? '' : '1' }));
   ww.querySelectorAll('[data-range]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.range;
