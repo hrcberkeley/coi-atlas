@@ -303,3 +303,8 @@ document lists · `src/cards.js` passage card · `src/side.js` Compare sources �
 - `atlas/about.html` is a static page on the same style sheet; linked from the header ("About") and the welcome footer.
 - bge backups deleted at the user's request. `e5_pass.py` now marks done slices by `stats_e5.json` instead of the backup folder and no longer hard-links old vectors.
 - Topics family threshold THR_F 0.91 -> 0.90; all slices rerun (`atlas/build/run_topics_f090.log`), watcher restarted after.
+
+## 17 Nov — Topics: classifier and passage layer; hosting (Fable)
+- Heading route: `family_probe.py` (Gemma-labelled, 20,918 headings, cut 0.4); passage layer `passage_family.py` -> `<slug>/w/<year>.json` (cut 0.6, margin 0.2). Details and judge results in `atlas/data/README.md`, "Topics revision 6". Coverage 55.5% by headings, about 70.6% with the passage layer.
+- App: worker loads `w/`; `p.fw` marks wording-only passages; card label in cards.js; state key `hw` ("Only passages under a matching heading"). Topics-tab counts (`np`) are heading filings only, so a family view can show more passages than its count.
+- Hosting: app on GitHub Pages (`hrcberkeley/coi-atlas`), data and PDFs on Hugging Face (`kolenyo/coi-atlas`, PDFs in `pdfs/NN/<id>.pdf`); `data.js` picks the data root by host (local `data/` on localhost). Multi-country reports: `WIDE` = 10 other countries in count.js, label "covers N countries" and filter key `mc`.

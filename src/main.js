@@ -113,6 +113,7 @@ function caseline() {
       ${state.q ? `<span class="schip"><button class="edit" data-edit="q" title="Edit">exact words: <b>${esc(state.q)}</b> <span class="cnt" data-cnt="q">${parts}</span></button>${clear('q', 'exact words')}</span>` : ''}
       ${state.lk ? `<span class="schip"><button class="edit" data-edit="lk" title="Edit">similar wording: <b>“${esc(state.lk)}”</b></button><select data-k="ln" aria-label="How many closest passages">${LN.map(n => `<option value="${n}"${(state.ln || '300') === n ? ' selected' : ''}>closest ${num(+n)}</option>`).join('')}</select>${clear('lk', 'similar wording')}</span>` : ''}
       ${state.fm && app.S?.hasTopics ? `<span class="schip"><button class="edit" data-edit-topic title="Show in the Topics tab">family: <b>${esc(app.S?.famById.get(state.fm)?.name || (state.fm === '29' ? 'Other questions' : state.fm))}</b></button>${clear('fm', 'family')}</span>` : ''}
+      ${state.fm && app.S?.hasTopics ? `<label class="fbox small"><input type="checkbox" data-hw${state.hw === '1' ? ' checked' : ''}> <span>Only passages under a matching heading</span></label>` : ''}
       ${state.tp && app.S?.hasTopics ? `<span class="schip"><button class="edit" data-edit-topic title="Show in the Topics tab">topic: <b>${esc(app.S?.topicById.get(state.tp)?.name || state.tp)}</b></button>${clear('tp', 'topic')}</span>` : ''}
       ${'' /* chips */}${state.ds ? `<span class="schip"><button class="edit" data-edit="ds" title="Edit">ecoi.net description: <b>${esc(state.ds)}</b> <span class="cnt">${plural(descDocs, 'document', 'documents')}</span></button>${clear('ds', 'ecoi.net description')}</span>` : ''}
       ${app.S && state.v !== 's' ? '<button class="linkish small" data-compare-on>Compare sources on this</button>' : ''}
@@ -144,6 +145,7 @@ function caseline() {
   };
   cl.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { app.mode = b.dataset.mode; caseline(); cl.querySelector('[data-k="search"]').focus(); });
   cl.querySelector('[data-compare-on]')?.addEventListener('click', () => set({ v: 's', sp: '' }));
+  cl.querySelector('[data-hw]')?.addEventListener('change', e => set({ hw: e.target.checked ? '1' : '' }));
   cl.querySelector('[data-edit-topic]')?.addEventListener('click', () => { app.leftTab = 'topics'; if (app.S && !state.v) renderWhere(app, main); });
   cl.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => {
     app.mode = b.dataset.edit; app.draft = state[app.mode];
@@ -336,7 +338,7 @@ async function render() {
   if (state.ck !== 'm' && selYears.join() !== lastSel) { lastSel = selYears.join(); data.post({ type: 'prio', years: selYears }); }
 
   const lk = state.lk ? `${state.lk}|${LN.includes(state.ln) ? state.ln : '300'}` : '';
-  app.q = { words: state.q || '', ds: state.ds || '', types: (state.t || '').split(',').filter(Boolean), place: state.w, clock: state.ck === 'm' ? 'men' : 'pub', lo: r ? r[0] : null, hi: r ? r[1] : null, folded: !!state.ff, lk, topic: S.hasTopics ? state.tp || '' : '', fam: S.hasTopics ? state.fm || '' : '', rows: state.rm === 't' ? 't' : '', ...filterQ() };
+  app.q = { words: state.q || '', ds: state.ds || '', types: (state.t || '').split(',').filter(Boolean), place: state.w, clock: state.ck === 'm' ? 'men' : 'pub', lo: r ? r[0] : null, hi: r ? r[1] : null, folded: !!state.ff, lk, topic: S.hasTopics ? state.tp || '' : '', fam: S.hasTopics ? state.fm || '' : '', hw: state.hw === '1', rows: state.rm === 't' ? 't' : '', ...filterQ() };
   app.W = parseWords(app.q.words);
   app.re = markRe(app.W);
   app.reDesc = markRe(parseWords([state.ds, state.q].filter(Boolean).join(', ')));

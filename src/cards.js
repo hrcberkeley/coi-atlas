@@ -53,6 +53,7 @@ export function card(app, p) {
   const long = p.t.length > 900;
   return `<article class="card" data-key="${key}" tabindex="0" aria-label="Passage from ${esc(src.short)}, ${esc(fmtDate(doc.date))}, page ${p.pg}">
     <p class="meta"><span class="who">${esc(src.short)}</span> · ${typeTag(doc)} · ${esc(fmtDate(doc.date))}${wide(doc) ? ` · <span class="grey" title="${esc(doc.also.join(', '))}">covers ${num(doc.also.length + 1)} countries</span>` : ''}</p>
+    ${p.fw?.includes(+app.q?.fam) ? '<p class="mech mlabel">Grouped by its wording; no heading in the report files it here</p>' : ''}
     ${p.bt ? `<p class="before"><span class="mlabel">Before this</span>“${esc(p.bt)}${p.bt.length >= 160 ? '…' : ''}”</p>` : ''}
     <blockquote class="src${long ? ' clamp' : ''}"${en ? ' lang="en"' : ''}>${marked(p.t, app.re)}</blockquote>
     ${long ? '<button class="more-text" aria-expanded="false">Show all</button>' : ''}

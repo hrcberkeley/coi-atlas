@@ -14,8 +14,8 @@ const complete = () => order.every(y => files[y]);
 let topics = false, byEcoi = null, noTopic = null, topicFam = {};
 function ensure(y) {
   const get = (u, empty) => fetch(u).then(r => (r.ok ? r.json() : empty)).catch(() => empty);
-  return (loading[y] ||= Promise.all([get(`${base}/p/${y}.json`, []), topics ? get(`${base}/t/${y}.json`, {}) : {}])
-    .then(([ps, tr]) => {
+  return (loading[y] ||= Promise.all([get(`${base}/p/${y}.json`, []), topics ? get(`${base}/t/${y}.json`, {}) : {}, topics ? get(`${base}/w/${y}.json`, {}) : {}])
+    .then(([ps, tr, wr]) => {
       for (const p of ps) { p._l = (p.t + '\n' + (p.en || '')).toLowerCase(); byKey.set(p.d + '.' + p.k, p); }
       // Topic ranges: {"<doc>": [[k_from, k_to, topic, heading], …]} → p.tp (topic ids) and p.th (heading index).
       for (const [key, ranges] of Object.entries(tr)) {
@@ -31,6 +31,12 @@ function ensure(y) {
             if (fam != null && !(p.fm || []).includes(fam)) (p.fm ||= []).push(fam);
           }
         }
+      }
+      // Layer 2 (grouped by wording, no heading): {"<doc>": [[k_from, k_to, family], …]} → p.fm and p.fw.
+      for (const [key, ranges] of Object.entries(wr)) {
+        const d = byEcoi.get(key) ?? (+key < docs.length ? +key : null);
+        if (d == null) continue;
+        for (const [a, b, fam] of ranges) for (let k = a; k <= b; k++) { const p = byKey.get(d + '.' + k); if (p) { (p.fm ||= []).push(fam); (p.fw ||= []).push(fam); } }
       }
       files[y] = ps;
     }));
@@ -76,7 +82,7 @@ async function bmScorer(tokens) {
 
 let nearCache = { key: '', set: null, rank: null, novec: 0 };
 async function near(q, ctx) {
-  const key = JSON.stringify([q.lk, q.words, q.place, q.types, q.ds, q.folded, q.topic, q.fam]);
+  const key = JSON.stringify([q.lk, q.words, q.place, q.types, q.ds, q.folded, q.topic, q.fam, q.hw]);
   if (nearCache.key === key) return nearCache;
   const vec = phrases.get(q.lk.split('|')[0]);
   const n = +q.lk.split('|')[1] || 300;
