@@ -4,6 +4,7 @@
 import { state, set, replace, href, esc, num, plural, fmtDate } from './state.js';
 import { ask, pdfUrl } from './data.js';
 import { pin, isPinned, copyQuote } from './casefile.js';
+import { matches, onTopic } from './count.js';
 import { marked, passageKey, repeatsList, typeTag, editions, english, wireOpen } from './cards.js';
 
 const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
@@ -122,6 +123,7 @@ function layout(app, doc) {
         <button class="pbtn" data-step="-1" aria-label="Previous page">◂ Previous</button>
         <label class="pjump">p. <input class="pin-page tnum" type="number" min="1" value="1" aria-label="Page number; Enter to go"> <span class="pof">of …</span></label>
         <button class="pbtn" data-step="1" aria-label="Next page">Next ▸</button>
+        <span class="mnav" hidden><button class="pbtn" data-m="-1" aria-label="Previous matching passage in this document">◂ Match</button> <span class="mcount tnum"></span> <button class="pbtn" data-m="1" aria-label="Next matching passage in this document">Match ▸</button></span>
       </nav>
       ${notice ? `<p class="notice">${esc(notice)}</p>` : ''}
       <div class="pages"><p class="grey sheet-msg">Loading the document…</p></div>
@@ -164,8 +166,25 @@ function select(app, el, k, scroll) {
   rail(app, el);
 }
 
+// Passages of this document that fit the search or topic in force, so a reader can step through them.
+function mnav(app, el) {
+  const box = el.querySelector('.mnav'), q = app.q || {}, w = app.W?.groups?.length, t = q.topic || q.fam;
+  D.m = !w && !t ? [] : D.ps.filter(p => !p.f && (!t || onTopic(p, q)) && (!w || matches(app.W, (p.t + '\n' + (p.en || '')).toLowerCase())));
+  box.hidden = !D.m.length;
+  if (!D.m.length) return;
+  const i = D.m.findIndex(p => p.k === D.sel);
+  box.querySelector('.mcount').textContent = i >= 0 ? `${i + 1} of ${D.m.length}` : `${D.m.length} matching`;
+  box.querySelectorAll('[data-m]').forEach(b => b.onclick = () => {
+    const step = +b.dataset.m, cur = D.byK.get(D.sel);
+    let j = i >= 0 ? i + step : step > 0 ? D.m.findIndex(p => cur && (p.pg > cur.pg || (p.pg === cur.pg && p.k > cur.k))) : D.m.findLastIndex(p => cur && (p.pg < cur.pg || (p.pg === cur.pg && p.k < cur.k)));
+    if (j < 0 || j >= D.m.length) j = step > 0 ? 0 : D.m.length - 1;
+    const n = D.m[j]; replace({ p: `${D.id}.${n.k}`, pg: String(n.pg) });
+  });
+}
+
 function rail(app, el) {
   D.qKey = app.qKey;
+  mnav(app, el);
   const R = el.querySelector('.rail');
   const p = D.sel != null ? D.byK.get(D.sel) : null;
   const doc = D.doc, en = english(doc);

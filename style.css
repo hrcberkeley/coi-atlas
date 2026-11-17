@@ -286,7 +286,7 @@ body.page-open { overflow: hidden; }
 .doccard .h { margin-top: 14px; }
 .doccard .eds li { display: flex; flex-direction: column; }
 .stage { overflow-y: auto; padding: 0 24px 40px; background: #F1EEE8; position: relative; outline: none; }
-.pnav { position: sticky; top: 0; z-index: 3; display: flex; justify-content: center; align-items: center; gap: 18px; padding: 8px 0; background: #F1EEE8; border-bottom: 1px solid var(--line); margin: 0 -24px 12px; }
+.pnav { position: sticky; top: 0; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 18px; padding: 8px 0; background: #F1EEE8; border-bottom: 1px solid var(--line); margin: 0 -24px 12px; }
 .pbtn { min-height: 34px; min-width: 112px; padding: 4px 14px; border: 1px solid var(--line); background: var(--card); border-radius: 4px; color: var(--ink); font-size: 13.5px; }
 .pbtn:hover { border-color: var(--grey); }
 .pjump { color: var(--grey); font-size: 13.5px; }
@@ -515,3 +515,6 @@ ul.heads .tnum { font-family: var(--sans); color: var(--grey); font-size: 11.5px
 .pl.fam .nm { font-weight: 500; }
 ul.fams > li > .tdetail { grid-column: 2; }
 .order .linkish[aria-pressed="true"] { color: var(--ink); text-decoration: none; font-weight: 600; }
+.mnav { display: inline-flex; align-items: center; gap: 8px; color: var(--grey); font-size: 13.5px; }
+.mnav[hidden] { display: none; }
+.mnav .pbtn { min-width: 0; }
