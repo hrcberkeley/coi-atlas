@@ -55,7 +55,7 @@ const list = v => (v || '').split(',').filter(Boolean);
 function filterQ() {
   const sk = list(state.sk), sc = list(state.sc);
   const srcs = sk.length || sc.length ? app.idx.sources.filter(s => (!sk.length || sk.includes(kindOf(s))) && (!sc.length || sc.includes(s.country))).map(s => String(s.k)) : null;
-  return { langs: list(state.lg), srcs, latest: state.le === '1' };
+  return { langs: list(state.lg), srcs, latest: state.le === '1', single: state.mc === '1' };
 }
 
 function columns(S, clock, r) {

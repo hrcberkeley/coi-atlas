@@ -1,6 +1,6 @@
 // Level 1 — the landscape: Who × When grid with stacked type cells, the Where panel, document lists (DESIGN §4.2).
 import { state, set, esc, num, plural, fmtDate, range } from './state.js';
-import { shades, height, pubYear, TYPES, typeIndex, KINDS, kindOf } from './count.js';
+import { shades, height, pubYear, TYPES, typeIndex, KINDS, kindOf, WIDE, wide } from './count.js';
 import { ask } from './data.js';
 import { typeTag, officialTitle, editions } from './cards.js';
 
@@ -17,7 +17,7 @@ const yearLimit = k => (state.s === k && state.y && !state.y.includes('-') ? sta
 
 // Filters (DESIGN §4.2): hidden until asked for; what is on stays in the address and the counter line.
 let filtersOpen = false;
-const FKEYS = ['lg', 'sk', 'sc', 'le', 'r'];
+const FKEYS = ['lg', 'sk', 'sc', 'le', 'mc', 'r'];
 const activeFilters = () => FKEYS.filter(k => state[k]).length;
 
 function filtersPanel(app) {
@@ -38,6 +38,7 @@ function filtersPanel(app) {
       <label class="fyear">to <input type="number" data-fy="hi" min="${lo}" max="${hi}" placeholder="${hi}" value="${r ? r[1] : ''}"></label>
       <legend class="sub">Editions</legend>
       <label class="fbox"><input type="checkbox" data-f="le" value="1"${state.le === '1' ? ' checked' : ''}> <span>Only the newest edition of each series</span> <span class="grey tnum">hides ${num(nSup)}</span></label>
+      <label class="fbox"><input type="checkbox" data-f="mc" value="1"${state.mc === '1' ? ' checked' : ''}> <span>Hide reports that cover ${WIDE} or more other countries</span> <span class="grey tnum">hides ${num(docs.filter(wide).length)}</span></label>
       <p class="grey small">A series is the same report in later years, such as a yearly country report.</p>
     </fieldset>
     <p class="fnote grey small">Numbers are documents on ${esc(app.country.name)} before filtering. Ticking nothing in a group keeps all of it. ${activeFilters() ? '<button class="linkish" data-fclear>Clear all filters</button>' : ''}</p>
@@ -422,7 +423,7 @@ function wire(app, el) {
   ww.querySelectorAll('[data-f]').forEach(b => b.addEventListener('change', () => {
     const k = b.dataset.f;
     app.refocus = `[data-f="${k}"][value="${CSS.escape(b.value)}"]`;
-    if (k === 'le') return set({ le: b.checked ? '1' : '' });
+    if (k === 'le' || k === 'mc') return set({ [k]: b.checked ? '1' : '' });
     set({ [k]: [...ww.querySelectorAll(`[data-f="${k}"]:checked`)].map(x => x.value).join(','), y: '' });
   }));
   ww.querySelectorAll('[data-fy]').forEach(b => b.addEventListener('change', () => {
@@ -431,7 +432,7 @@ function wire(app, el) {
     if (lo > 999 && hi > 999) set({ r: `${Math.min(lo, hi)}-${Math.max(lo, hi)}`, y: '' });
     else if (!b.value) set({ r: '', y: '' });
   }));
-  ww.querySelector('[data-fclear]')?.addEventListener('click', () => { app.refocus = '[data-filters]'; set({ lg: '', sk: '', sc: '', le: '', r: '', y: '' }); });
+  ww.querySelector('[data-fclear]')?.addEventListener('click', () => { app.refocus = '[data-filters]'; set({ lg: '', sk: '', sc: '', le: '', mc: '', r: '', y: '' }); });
   ww.querySelector('[data-ff]')?.addEventListener('click', () => set({ ff: state.ff ? '' : '1' }));
   ww.querySelectorAll('[data-range]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.range;

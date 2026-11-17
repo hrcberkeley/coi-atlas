@@ -78,6 +78,10 @@ export const KINDS = [['gov', 'Governments'], ['int', 'International and EU bodi
 export const kindOf = s => ({ government: 'gov', igo: 'int', 'eu-asylum-agency': 'int', 'eu-institution': 'int', ngo: 'ngo', 'think-tank-academic': 'res', 'quasi-governmental-coi': 'res' }[s.type] || 'res');
 
 // A later edition of the same series exists (title series `ed`, oldest first, or the catalogue's `next`).
+// A report filed under many countries (ecoi.net lists them in `also`).
+export const WIDE = 10;
+export const wide = doc => (doc.also?.length || 0) >= WIDE;
+
 export const superseded = doc => (Array.isArray(doc.ed) && doc.ed.length ? String(doc.ed.at(-1)[0]) !== String(doc.id) : doc.next != null);
 
 // q.langs: [language names] · q.srcs: [source keys] or null for all · q.latest: newest edition only.
@@ -87,7 +91,7 @@ export function docFilter(docs, q) {
   const ok = new Uint8Array(docs.length);
   docs.forEach((doc, d) => {
     ok[d] = (!types.size || types.has(TYPES[typeIndex(doc)].code)) && (!D.groups.length || matches(D, String(doc.title || '').toLowerCase()))
-      && (!langs.size || langs.has(doc.lang)) && (!srcs || srcs.has(String(doc.s))) && (!q.latest || !superseded(doc)) ? 1 : 0;
+      && (!langs.size || langs.has(doc.lang)) && (!srcs || srcs.has(String(doc.s))) && (!q.latest || !superseded(doc)) && (!q.single || !wide(doc)) ? 1 : 0;
   });
   return ok;
 }

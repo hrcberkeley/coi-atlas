@@ -116,7 +116,7 @@ async function near(q, ctx) {
 
 const ctxCache = { key: '', ctx: null };
 function context(q) {
-  const key = JSON.stringify([q.words, q.ds, q.types, q.langs, q.srcs, q.latest]);
+  const key = JSON.stringify([q.words, q.ds, q.types, q.langs, q.srcs, q.latest, q.single]);
   if (ctxCache.key !== key) ctxCache.ctx = { docs, parent, W: parseWords(q.words), docOK: docFilter(docs, q), opened };
   ctxCache.key = key;
   return ctxCache.ctx;
