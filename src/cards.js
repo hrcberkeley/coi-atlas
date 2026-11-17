@@ -51,11 +51,14 @@ export function card(app, p) {
   const names = (p.pl || []).map(id => app.S.place.get(String(id))?.name).filter(Boolean);
   const key = passageKey(app, p);
   const long = p.t.length > 900;
+  const hit = long && app.re ? p.t.search(app.re) : -1;
+  let ex = '';
+  if (hit > 350) { const a = p.t.lastIndexOf(' ', hit - 150); ex = '… ' + marked(p.t.slice(a < 0 ? 0 : a + 1, hit + 600), app.re) + ' …'; }
   return `<article class="card" data-key="${key}" tabindex="0" aria-label="Passage from ${esc(src.short)}, ${esc(fmtDate(doc.date))}, page ${p.pg}">
     <p class="meta"><span class="who">${esc(src.short)}</span> · ${typeTag(doc)} · ${esc(fmtDate(doc.date))}${wide(doc) ? ` · <span class="grey" title="${esc(doc.also.join(', '))}">covers ${num(doc.also.length + 1)} countries</span>` : ''}</p>
     ${p.fw?.includes(+app.q?.fam) ? '<p class="mech mlabel">Grouped by its wording; no heading in the report files it here</p>' : ''}
     ${p.bt ? `<p class="before"><span class="mlabel">Before this</span>“${esc(p.bt)}${p.bt.length >= 160 ? '…' : ''}”</p>` : ''}
-    <blockquote class="src${long ? ' clamp' : ''}"${en ? ' lang="en"' : ''}>${marked(p.t, app.re)}</blockquote>
+    <blockquote class="src${long ? ' clamp' : ''}"${en ? ' lang="en"' : ''}${ex ? ` data-ex="${esc(ex)}" data-full="${esc(marked(p.t, app.re))}"` : ''}>${ex || marked(p.t, app.re)}</blockquote>
     ${long ? '<button class="more-text" aria-expanded="false">Show all</button>' : ''}
     ${en ? '' : p.en
       ? `<button class="mt-toggle" aria-pressed="false" aria-expanded="false">Machine translated</button><div class="mt mech" hidden><span class="mlabel">Machine translated, may be incomplete · document catalogued as ${esc(doc.lang)}</span><p>${marked(p.en, app.re)}</p></div>`
@@ -79,6 +82,7 @@ export function wireCards(app, root, byKey) {
   }));
   root.querySelectorAll('.more-text').forEach(b => b.addEventListener('click', () => {
     const q = b.previousElementSibling, open = q.classList.toggle('clamp');
+    if (q.dataset.ex) q.innerHTML = open ? q.dataset.ex : q.dataset.full;
     b.textContent = open ? 'Show all' : 'Show less';
     b.setAttribute('aria-expanded', !open);
   }));

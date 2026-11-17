@@ -80,6 +80,8 @@ export const kindOf = s => ({ government: 'gov', igo: 'int', 'eu-asylum-agency':
 // A later edition of the same series exists (title series `ed`, oldest first, or the catalogue's `next`).
 // A report filed under many countries (ecoi.net lists them in `also`).
 export const WIDE = 10;
+// Reports that cover many countries are hidden by default in a topic view (mc=0 shows them).
+export const singleOn = s => s.mc === '1' || (s.mc !== '0' && !!(s.tp || s.fm));
 export const wide = doc => (doc.also?.length || 0) >= WIDE;
 
 export const superseded = doc => (Array.isArray(doc.ed) && doc.ed.length ? String(doc.ed.at(-1)[0]) !== String(doc.id) : doc.next != null);

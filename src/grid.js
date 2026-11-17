@@ -1,6 +1,6 @@
 // Level 1 — the landscape: Who × When grid with stacked type cells, the Where panel, document lists (DESIGN §4.2).
 import { state, set, esc, num, plural, fmtDate, range } from './state.js';
-import { shades, height, pubYear, TYPES, typeIndex, KINDS, kindOf, WIDE, wide } from './count.js';
+import { shades, height, pubYear, TYPES, typeIndex, KINDS, kindOf, WIDE, wide, singleOn } from './count.js';
 import { ask } from './data.js';
 import { typeTag, officialTitle, editions } from './cards.js';
 
@@ -18,7 +18,7 @@ const yearLimit = k => (state.s === k && state.y && !state.y.includes('-') ? sta
 // Filters (DESIGN §4.2): hidden until asked for; what is on stays in the address and the counter line.
 let filtersOpen = false;
 const FKEYS = ['lg', 'sk', 'sc', 'le', 'mc', 'r'];
-const activeFilters = () => FKEYS.filter(k => state[k]).length;
+const activeFilters = () => FKEYS.filter(k => state[k] && !(k === 'mc' && state.mc === '0')).length;
 
 function filtersPanel(app) {
   const docs = app.S.docs, srcBy = new Map(app.idx.sources.map(s => [String(s.k), s]));
@@ -38,7 +38,7 @@ function filtersPanel(app) {
       <label class="fyear">to <input type="number" data-fy="hi" min="${lo}" max="${hi}" placeholder="${hi}" value="${r ? r[1] : ''}"></label>
       <legend class="sub">Editions</legend>
       <label class="fbox"><input type="checkbox" data-f="le" value="1"${state.le === '1' ? ' checked' : ''}> <span>Only the newest edition of each series</span> <span class="grey tnum">hides ${num(nSup)}</span></label>
-      <label class="fbox"><input type="checkbox" data-f="mc" value="1"${state.mc === '1' ? ' checked' : ''}> <span>Hide reports that cover ${WIDE} or more other countries</span> <span class="grey tnum">hides ${num(docs.filter(wide).length)}</span></label>
+      <label class="fbox"><input type="checkbox" data-f="mc" value="1"${singleOn(state) ? ' checked' : ''}> <span>Hide reports that cover ${WIDE} or more other countries</span> <span class="grey tnum">hides ${num(docs.filter(wide).length)}</span></label>
       <p class="grey small">A series is the same report in later years, such as a yearly country report.</p>
     </fieldset>
     <p class="fnote grey small">Numbers are documents on ${esc(app.country.name)} before filtering. Ticking nothing in a group keeps all of it. ${activeFilters() ? '<button class="linkish" data-fclear>Clear all filters</button>' : ''}</p>
@@ -268,7 +268,7 @@ function renderTopics(app, el) {
     const ts = S.topics.filter(t => t.fam === f.id && hit(t));
     if (v && !ts.length && !f.name.toLowerCase().includes(v)) return '';
     const open = openFams.has(f.id) || (v && ts.length);
-    return `<li><button class="tog" data-ftog="${f.id}" aria-expanded="${!!open}" aria-label="${open ? 'Hide' : 'Show'} the topics in ${esc(f.name)}">${open ? '▾' : '▸'}</button><button class="pl fam${state.fm === String(f.id) ? ' on' : ''}" data-famsel="${f.id}" aria-pressed="${state.fm === String(f.id)}"><span class="nm">${esc(f.name)}</span><span class="tnum">${f.docs != null ? num(f.docs) : ''}</span></button>
+    return `<li><button class="tog" data-ftog="${f.id}" aria-expanded="${!!open}" aria-label="${open ? 'Hide' : 'Show'} the topics in ${esc(f.name)}">${open ? '▾' : '▸'}</button><button class="pl fam${state.fm === String(f.id) ? ' on' : ''}" data-famsel="${f.id}" aria-pressed="${state.fm === String(f.id)}"><span class="nm">${esc(f.name)}</span><span class="tnum" title="Documents with a heading in this family. Opening it also shows passages grouped by their wording, so the list can be longer.">${f.docs != null ? num(f.docs) : ''}</span></button>
       ${open ? `<div class="tdetail"><p><button class="linkish small" data-compare-fam="${f.id}">Compare sources on this</button></p>${ts.length ? `<ul class="topics">${ts.map(t => {
         const to = openTopics.has(t.id);
         return `<li><button class="tog" data-ttog="${t.id}" aria-expanded="${to}" aria-label="${to ? 'Hide' : 'Show'} the questions of ${esc(t.name)}">${to ? '▾' : '▸'}</button><button class="pl${state.tp === String(t.id) ? ' on' : ''}" data-topic="${t.id}" aria-pressed="${state.tp === String(t.id)}"><span class="nm">${esc(t.name)}</span><span class="tnum">${num(t.docs)}</span></button>${to ? topicDetail(app, t) : ''}</li>`;
@@ -423,7 +423,8 @@ function wire(app, el) {
   ww.querySelectorAll('[data-f]').forEach(b => b.addEventListener('change', () => {
     const k = b.dataset.f;
     app.refocus = `[data-f="${k}"][value="${CSS.escape(b.value)}"]`;
-    if (k === 'le' || k === 'mc') return set({ [k]: b.checked ? '1' : '' });
+    if (k === 'le') return set({ le: b.checked ? '1' : '' });
+    if (k === 'mc') return set({ mc: b.checked ? '1' : (state.tp || state.fm) ? '0' : '' });
     set({ [k]: [...ww.querySelectorAll(`[data-f="${k}"]:checked`)].map(x => x.value).join(','), y: '' });
   }));
   ww.querySelectorAll('[data-fy]').forEach(b => b.addEventListener('change', () => {

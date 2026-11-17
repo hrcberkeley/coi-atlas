@@ -126,7 +126,7 @@ function layout(app, doc) {
         <span class="mnav" hidden><button class="pbtn" data-m="-1" aria-label="Previous matching passage in this document">◂ Match</button> <span class="mcount tnum"></span> <button class="pbtn" data-m="1" aria-label="Next matching passage in this document">Match ▸</button></span>
       </nav>
       ${notice ? `<p class="notice">${esc(notice)}</p>` : ''}
-      <div class="pages"><p class="grey sheet-msg">Loading the document…</p></div>
+      <div class="pages"><p class="grey sheet-msg">Loading the PDF… large reports can take 20 seconds.</p></div>
     </section>
     <aside class="rail" aria-label="Selected passage"></aside>
   </div>`;
