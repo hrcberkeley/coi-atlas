@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Investigations Lab Country Conditions Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#" title="About the atlas and the list of countries"><span class="lab">Investigations Lab</span><span class="nm">Country Conditions Atlas</span></a>
+  <nav class="caseline" id="caseline" aria-label="The case"></nav>
+  <div class="top-actions">
+    <a class="quiet-btn" href="about.html">About</a>
+    <button class="quiet-btn" id="copylink" title="Copies the search. Your evidence is never in the link.">Copy link</button>
+    <button class="casefile-btn" id="casefile-btn" aria-controls="drawer" aria-expanded="false">Evidence</button>
+  </div>
+</header>
+<main id="main"></main>
+<div id="page" class="page-panel" role="dialog" aria-modal="true" aria-label="Page" hidden></div>
+<aside id="drawer" class="drawer" aria-label="Evidence" hidden></aside>
+<div id="live" class="sr-only" aria-live="polite"></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

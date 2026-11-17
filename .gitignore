@@ -1,0 +1,7 @@
+data/
+build/
+pdfs/
+critique/
+CRITIQUE.md
+.DS_Store
+/pdfs
