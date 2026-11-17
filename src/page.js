@@ -2,7 +2,7 @@
 // either by the way in (a card's page link) or by clicking it on the page.
 // Address: p = "<ecoi id>" (document, nothing selected) or "<ecoi id>.<k>" (passage selected); pg = page in view.
 import { state, set, replace, href, esc, num, plural, fmtDate } from './state.js';
-import { ask } from './data.js';
+import { ask, pdfUrl } from './data.js';
 import { pin, isPinned, copyQuote } from './casefile.js';
 import { marked, passageKey, repeatsList, typeTag, editions, english, wireOpen } from './cards.js';
 
@@ -59,7 +59,7 @@ async function openDoc(app, el, id, d, k) {
   el.querySelector('.page-close').focus({ preventScroll: true });
   const [{ passages }, file] = await Promise.all([
     ask({ type: 'docps', d, folded: !!state.ff }),
-    pdfjs().then(L => L.getDocument(`pdfs/${id}.pdf`).promise).catch(e => ({ error: e })),
+    pdfjs().then(L => L.getDocument(pdfUrl(id)).promise).catch(e => ({ error: e })),
   ]);
   if (D !== mine) return;
   D.ps = passages;

@@ -3,7 +3,10 @@ import { pubYear } from './count.js';
 import { load } from './state.js';
 
 // Local copy when served from this machine; the published data on Hugging Face otherwise.
-export const DATA = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? 'data' : 'https://huggingface.co/datasets/kolenyo/coi-atlas/resolve/main';
+const LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+export const DATA = LOCAL ? 'data' : 'https://huggingface.co/datasets/kolenyo/coi-atlas/resolve/main';
+// Published PDFs sit in 100 folders by the id's last two digits (Hugging Face wants under 10,000 files per folder).
+export const pdfUrl = id => (LOCAL ? `pdfs/${id}.pdf` : `${DATA}/pdfs/${String(id).slice(-2)}/${id}.pdf`);
 
 const json = url => fetch(url).then(r => { if (!r.ok) throw new Error(`${url}: ${r.status}`); return r.json(); });
 
