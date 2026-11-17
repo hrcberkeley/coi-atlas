@@ -48,6 +48,7 @@ p.mech.mlabel { font-size: 11.5px; }
 /* ---------- Case line ---------- */
 .top { position: sticky; top: 0; z-index: 20; display: flex; align-items: flex-start; gap: 22px; padding: 12px 24px 10px; background: var(--paper); border-top: 3px solid var(--brand); border-bottom: 1px solid var(--line); }
 .brand { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1px; white-space: nowrap; padding-top: 1px; text-decoration: none; color: var(--brand); }
+.brand .hrc { display: block; height: 22px; width: auto; margin-bottom: 5px; }
 .brand .lab { font: 600 11px/1.2 var(--sans); letter-spacing: .09em; text-transform: uppercase; color: var(--grey); }
 .brand .nm { font: 600 17px/1.15 var(--serif); letter-spacing: -.005em; }
 .brand:hover .nm { text-decoration: underline;  text-underline-offset: 3px; }
@@ -104,7 +105,7 @@ main { padding: 16px 24px 48px; }
 .progress::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--grey); margin-right: 6px; vertical-align: 1px; animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .25; } }
 @media (prefers-reduced-motion: reduce) { .progress::before { animation: none; } }
-.controls { display: flex; gap: 14px; align-items: center; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 .ranges button { color: var(--grey); padding: 3px 8px; border-radius: 3px; font-size: 12.5px; }
 .ranges button:hover:not(:disabled) { color: var(--ink); background: var(--line); }
 .clock select { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 2px 4px; font-size: 12.5px; }
