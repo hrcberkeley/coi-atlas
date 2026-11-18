@@ -34,7 +34,7 @@ function ensure(y) {
       }
       // Passage classifier, revision 7: {v: 2, c: two chars per passage of p/<y>.json} — family letter (A = 0) or "-" not content or "." not scored,
       // then strength 0-9. Junk (strength >= 7) leaves topic views; an unfiled passage joins its family at strength >= 6 (p.fw: by wording).
-      if (wr.v === 2) {
+      if (wr.v === 2 || wr.v === 3) {
         const c = wr.c || '';
         ps.forEach((p, i) => {
           const f = c[2 * i], s = +c[2 * i + 1];
@@ -42,8 +42,18 @@ function ensure(y) {
           p.ws = s;
           if (f === '-') { if (s >= 7) p.nc = 1; return; }
           p.wc = f.charCodeAt(0) - 65;
-          if (!p.fm && s >= 6) { p.fm = [p.wc]; p.fw = [p.wc]; }
+          if (wr.v === 2) { if (!p.fm && s >= 6) { p.fm = [p.wc]; p.fw = [p.wc]; } return; }
+          // Revision 8: the main family by wording joins at strength >= 6 even under a heading; a second family is written only when it qualifies;
+          // k: up to two kinds of information ("1".."8").
+          const add = f => { if (!(p.fm || []).includes(f)) { (p.fm ||= []).push(f); (p.fw ||= []).push(f); } };
+          if (s >= 6) add(p.wc);
+          const f2 = wr.c2?.[2 * i];
+          if (f2 && f2 !== '.') { p.wc2 = f2.charCodeAt(0) - 65; p.ws2 = +wr.c2[2 * i + 1]; add(p.wc2); }
+          const k = wr.k?.slice(2 * i, 2 * i + 2).replace(/0/g, '');
+          if (k) p.kd = k;
         });
+        // Revision 8: passages of a multi-country report that name only another of its countries → p.oc (that country's name).
+        for (const [i, n] of wr.o || []) if (ps[i]) ps[i].oc = wr.on[n];
       }
       // Layer 2, older form (grouped by wording, no heading): {"<doc>": [[k_from, k_to, family], …]} → p.fm and p.fw.
       else for (const [key, ranges] of Object.entries(wr)) {
@@ -168,8 +178,14 @@ const vecReady = () => order.every(y => vecs[y]);
 // Topic strength: a heading or question filing (10) above a filing by wording alone, then the classifier's strength for that family.
 const topicOf = q => (q.fam !== '' && q.fam != null ? +q.fam : q.topic ? topicFam[q.topic] ?? null : null);
 // A bare heading or fragment (under 60 characters) sinks below real text.
-const tscore = (p, f) => ((p.fw || []).includes(f) ? 0 : 10) + (p.wc === f ? p.ws : 0) - (p.t.length < 60 ? 12 : 0);
-const slim = p => { const { _l, ...rest } = p; const prev = byKey.get(p.d + '.' + (p.k - 1)); if (prev) rest.bt = prev.t.slice(0, 160); return rest; };
+// A passage that names only another country of a regional report sinks too.
+const tscore = (p, f) => ((p.fw || []).includes(f) ? 0 : 10) + (p.wc === f ? p.ws : p.wc2 === f ? p.ws2 : 0) - (p.t.length < 60 ? 12 : 0) - (p.oc ? 8 : 0);
+// A bare heading or fragment (under 60 characters) carries the text that follows it, so a topic list shows what the heading files.
+const slim = p => {
+  const { _l, ...rest } = p; const prev = byKey.get(p.d + '.' + (p.k - 1)); if (prev) rest.bt = prev.t.slice(0, 160);
+  if (p.t.length < 60) { const next = byKey.get(p.d + '.' + (p.k + 1)); if (next) { rest.at = next.t.slice(0, 700); rest.apg = next.pg; if (next.en) rest.aen = next.en.slice(0, 700); } }
+  return rest;
+};
 const newestFirst = (a, b) => {
   const da = docs[a.d].date || '', db = docs[b.d].date || '';
   return da > db ? -1 : da < db ? 1 : a.d - b.d || a.pg - b.pg || a.k - b.k;
@@ -183,6 +199,7 @@ function acceptor(q, ctx, sources, years) {
   const ysel = years ? new Set(years.map(String)) : null;
   return p => {
     if ((p.f && (!q.folded || ctx.W.groups.length || q.lk)) || !ctx.docOK[p.d]) return null;
+    if (ctx.clean && p.nc) return null;   // comparisons leave reference material and page furniture out, whatever the question
     const doc = docs[p.d];
     if (src && !src.has(doc.s)) return null;
     if (ctx.near && !ctx.near.has(p.d + '.' + p.k)) return null;
@@ -199,8 +216,8 @@ function acceptor(q, ctx, sources, years) {
 // the other sources' documents that hold the same text.
 let textIndex = null;
 async function who(m) {
-  const { q, years, key } = m;
-  const ctx = { ...context(q), near: null };
+  const { q, years, key, periods } = m;
+  const ctx = { ...context(q), near: null, clean: true };
   let rank = null;
   if (q.lk) {
     if (!phrases.has(q.lk.split('|')[0])) return { waiting: true };
@@ -217,8 +234,11 @@ async function who(m) {
   const f = topicOf(q), ts = p => (f == null ? 0 : tscore(p, f));
   const order3 = (a, b) => a.d < b.d || (a.d === b.d && (a.pg < b.pg || (a.pg === b.pg && a.k < b.k)));
   // a before b in "newest first"; on the same date the stronger topic filing first
-  const newer = (a, b) => (date(a) !== date(b) ? date(a) > date(b) : ts(a) !== ts(b) ? ts(a) > ts(b) : order3(a, b));
-  const older = (a, b) => (date(a) !== date(b) ? date(a) < date(b) : ts(a) !== ts(b) ? ts(a) > ts(b) : !order3(a, b) && a !== b);
+  // On the same date: the stronger topic filing, then a passage with real text (not a fragment, not about another country).
+  const info = p => (p.t.length >= 120 ? 2 : p.t.length >= 60 ? 1 : 0) - (p.oc ? 2 : 0);
+  const tie = (a, b) => (ts(a) !== ts(b) ? ts(a) > ts(b) : info(a) !== info(b) ? info(a) > info(b) : null);
+  const newer = (a, b) => (date(a) !== date(b) ? date(a) > date(b) : tie(a, b) ?? order3(a, b));
+  const older = (a, b) => (date(a) !== date(b) ? date(a) < date(b) : tie(a, b) ?? (!order3(a, b) && a !== b));
   const best = (list, cmp) => list.reduce((x, p) => (x == null || cmp(p, x) ? p : x), null);
   const closer = (a, b) => rank.get(a.d + '.' + a.k) < rank.get(b.d + '.' + b.k);
   textIndex ||= (() => { const T = new Map(); for (const y of order) for (const p of files[y]) if (!p.f) (T.get(p.t) || T.set(p.t, []).get(p.t)).push(p); return T; })();
@@ -230,24 +250,32 @@ async function who(m) {
       .sort((a, b) => (a.date < b.date ? -1 : 1));
   };
   const rows = [];
-  for (const [s, list] of by) {
-    const docsN = new Set(list.map(p => p.d)).size;
+  for (const [s, all] of by) {
+    // the two picks come from passages about this country when the source has any
+    const own = all.filter(p => !p.oc), list = own.length ? own : all;
+    const docsN = new Set(all.map(p => p.d)).size;
     const pickNew = l => best(l, rank ? closer : newer);
     const pickOld = l => best(l, rank ? closer : older);
-    let a, b, mode;
-    if (years) { mode = 'year'; a = pickOld(list); b = pickNew(list); }
-    else if (key) { mode = 'key'; a = pickNew(list.filter(p => date(p) && date(p).slice(0, key.length) <= key)); b = pickNew(list); }
+    let a, b, mode, na, nb;
+    const inP = ([lo, hi]) => p => { const y = +date(p).slice(0, 4); return y >= lo && y <= hi; };
+    if (periods) { mode = 'periods'; const A = all.filter(inP(periods[0])), B = all.filter(inP(periods[1])); na = A.length; nb = B.length; a = pickNew(A.filter(p => !p.oc).length ? A.filter(p => !p.oc) : A); b = pickNew(B.filter(p => !p.oc).length ? B.filter(p => !p.oc) : B); }
+    else if (years) { mode = 'year'; a = pickOld(list); b = pickNew(list); }
+    else if (key) {
+      mode = 'key'; b = pickNew(list); a = pickNew(list.filter(p => date(p) && date(p).slice(0, key.length) <= key));
+      // A key date after the source's latest passage (a planned transfer): show what it said about five years earlier instead.
+      if (a && a === b && date(b)) { const cut = String(+date(b).slice(0, 4) - 4) + date(b).slice(4); a = pickNew(list.filter(p => date(p) && date(p) <= cut)) || pickOld(list); mode = 'earlier'; }
+    }
     else { mode = 'span'; a = pickOld(list); b = pickNew(list); }
     if (a && b && a === b) a = mode === 'key' ? a : null;
-    const sameAB = a === b;
-    rows.push({ s, n: list.length, docs: docsN, mode, a: a && slim(a), b: !sameAB && b ? slim(b) : null, one: sameAB, sa: same(a), sb: sameAB ? [] : same(b) });
+    const sameAB = a === b && mode !== 'periods';
+    rows.push({ s, n: all.length, docs: docsN, mode, na, nb, a: a && slim(a), b: !sameAB && b ? slim(b) : null, one: sameAB, sa: same(a), sb: sameAB ? [] : same(b) });
   }
   return { rows };
 }
 
 async function list(m) {
   const { q, sources, years, offset = 0, limit = 50, ord } = m;
-  const ctx = { ...context(q), near: null };
+  const ctx = { ...context(q), near: null, clean: !!m.clean };
   let rank = null;
   if (q.lk) {
     if (!phrases.has(q.lk.split('|')[0])) return { items: [], end: false, waiting: true };
@@ -257,7 +285,7 @@ async function list(m) {
   const accept = acceptor(q, ctx, sources, years);
   const best = !rank && ord !== 'new' && ctx.W.tokens.length > 0;   // exact words: best match first unless asked for newest
   const strong = !rank && !best && ord !== 'new' && topicOf(q) != null;   // a topic alone: strongest filings first
-  const key = JSON.stringify([q, sources, years, best, strong]);
+  const key = JSON.stringify([q, sources, years, best, strong, !!m.clean]);
   let c = listCache.get(key);
   if (!c) { listCache.clear(); c = { years: {}, all: null }; listCache.set(key, c); }
   const want = offset + limit;

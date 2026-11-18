@@ -119,7 +119,7 @@ function caseline() {
       </span>
     </div>
     <p class="search-help sr-only" id="search-help">${MODES[app.mode].help}</p>
-    ${state.q || state.lk || state.ds || state.r || state.ck === 'm' || (app.S?.hasTopics && (state.tp || state.fm)) ? `<div class="cl-row chips">
+    ${state.q || state.lk || state.ds || state.r || state.kd || state.ck === 'm' || (app.S?.hasTopics && (state.tp || state.fm)) ? `<div class="cl-row chips">
       ${state.r ? `<span class="schip"><span class="edit">years: <b>${state.r.replace('-', '–')}</b></span>${clear('r', 'year range')}</span>` : ''}
       ${state.ck === 'm' ? `<span class="schip"><span class="edit">counting by the year the text mentions</span>${clear('ck', 'year the text mentions')}</span>` : ''}
       ${state.q ? `<span class="schip"><button class="edit" data-edit="q" title="Edit">exact words: <b>${esc(state.q)}</b> <span class="cnt" data-cnt="q">${parts}</span></button>${clear('q', 'exact words')}</span>` : ''}
@@ -127,6 +127,7 @@ function caseline() {
       ${state.fm && app.S?.hasTopics ? `<span class="schip"><button class="edit" data-edit-topic title="Show in the Topics tab">family: <b>${esc(app.S?.famById.get(state.fm)?.name || (state.fm === '29' ? 'Other questions' : state.fm))}</b></button>${clear('fm', 'family')}</span>` : ''}
       ${(state.fm || state.tp) && app.S?.hasTopics ? `<label class="fbox small"><input type="checkbox" data-mc${singleOn(state) ? '' : ' checked'}> <span>Include reports that cover ${WIDE} or more countries</span></label>
       <label class="fbox small"><input type="checkbox" data-hw${state.hw === '1' ? ' checked' : ''}> <span>Only passages under a matching heading</span></label>` : ''}
+      ${app.S?.topicsMeta?.kinds && (state.fm || state.tp || state.q || state.lk || state.kd) ? `<label class="kindsel small"><span>Kind of information</span> <select data-k="kd"><option value="">any</option>${app.S.topicsMeta.kinds.map((k, i) => `<option value="${i + 1}"${state.kd === String(i + 1) ? ' selected' : ''}>${esc(k)}</option>`).join('')}</select></label>` : ''}
       ${state.tp && app.S?.hasTopics ? `<span class="schip"><button class="edit" data-edit-topic title="Show in the Topics tab">topic: <b>${esc(app.S?.topicById.get(state.tp)?.name || state.tp)}</b></button>${clear('tp', 'topic')}</span>` : ''}
       ${'' /* chips */}${state.ds ? `<span class="schip"><button class="edit" data-edit="ds" title="Edit">ecoi.net description: <b>${esc(state.ds)}</b> <span class="cnt">${plural(descDocs, 'document', 'documents')}</span></button>${clear('ds', 'ecoi.net description')}</span>` : ''}
       ${app.S && state.v !== 's' ? '<button class="linkish small" data-compare-on>Compare sources on this</button>' : ''}
@@ -361,7 +362,7 @@ async function render() {
   if (state.ck !== 'm' && selYears.join() !== lastSel) { lastSel = selYears.join(); data.post({ type: 'prio', years: selYears }); }
 
   const lk = state.lk ? `${state.lk}|${LN.includes(state.ln) ? state.ln : '300'}` : '';
-  app.q = { words: state.q || '', ds: state.ds || '', types: (state.t || '').split(',').filter(Boolean), place: state.w, clock: state.ck === 'm' ? 'men' : 'pub', lo: r ? r[0] : null, hi: r ? r[1] : null, folded: !!state.ff, lk, topic: S.hasTopics ? state.tp || '' : '', fam: S.hasTopics ? state.fm || '' : '', hw: state.hw === '1', rows: state.rm === 't' ? 't' : '', ...filterQ() };
+  app.q = { words: state.q || '', ds: state.ds || '', types: (state.t || '').split(',').filter(Boolean), place: state.w, clock: state.ck === 'm' ? 'men' : 'pub', lo: r ? r[0] : null, hi: r ? r[1] : null, folded: !!state.ff, lk, topic: S.hasTopics ? state.tp || '' : '', fam: S.hasTopics ? state.fm || '' : '', hw: state.hw === '1', kd: S.topicsMeta?.kinds ? state.kd || '' : '', rows: state.rm === 't' ? 't' : '', ...filterQ() };
   app.W = parseWords(app.q.words);
   app.re = markRe(app.W);
   app.reDesc = markRe(parseWords([state.ds, state.q].filter(Boolean).join(', ')));
@@ -388,7 +389,7 @@ async function render() {
   if (state.p) renderPage(app, pageEl); else closePage(pageEl);
   if (state.v === 's') {
     const ready = !app.needsPassages || app.progress.complete;
-    const key = JSON.stringify([state.c, state.y, state.l, state.hd, state.sp, state.dc, qKey, ready, !!app.lk?.ready, app.T?.total ?? -1]);   // redraw once a phrase is ready and its counts are in
+    const key = JSON.stringify([state.c, state.y, state.l, state.hd, state.sp, state.pp, state.cc, state.dc, qKey, ready, !!app.lk?.ready, app.T?.total ?? -1]);   // redraw once a phrase is ready and its counts are in
     if (main.dataset.side !== key) {
       main.dataset.side = key;
       if (!ready) { main.innerHTML = `<div class="side"><p class="busy" role="status">${counterLine(app)}</p></div>`; return; }

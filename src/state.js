@@ -7,7 +7,7 @@
 // hd sources hidden in Who says what · sp two sources side by side · o "n" = newest first (default: best word match first)
 // lg languages · sk institution kinds · sc institution countries (comma lists) · le 1 = newest edition only (DESIGN §4.2 filters)
 // p open passage "<ecoi id>.<k>" · pg page shown · ff 1 = show folded contents/reference lines
-const KEYS = ['c', 'w', 'l', 'dc', 'q', 'lk', 'ln', 'ds', 'fm', 'tp', 't', 'ck', 'r', 'lg', 'sk', 'sc', 'le', 'mc', 'hw', 'rm', 'ff', 'x', 's', 'y', 'v', 'hd', 'sp', 'o', 'p', 'pg'];
+const KEYS = ['c', 'w', 'l', 'dc', 'q', 'lk', 'ln', 'ds', 'fm', 'tp', 't', 'ck', 'r', 'lg', 'sk', 'sc', 'le', 'mc', 'hw', 'kd', 'rm', 'ff', 'x', 's', 'y', 'v', 'hd', 'sp', 'pp', 'cc', 'o', 'p', 'pg'];
 export const CASE_KEYS = ['c', 'w', 'l', 'dc', 'q', 'lk', 'ln', 'ds', 'fm', 'tp', 't', 'ck', 'r', 'lg', 'sk', 'sc', 'le', 'mc'];
 export const state = {};
 

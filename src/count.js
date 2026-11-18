@@ -194,9 +194,10 @@ export function addPassages(T, ps, ctx, q) {
 export const onTopic = (p, q) =>
   !(p.nc && (q.topic || (q.fam !== '' && q.fam != null))) &&
   (q.topic === '' || q.topic == null || [].concat(p.tp ?? []).includes(+q.topic)) &&
-  (q.fam === '' || q.fam == null || ((p.fm || []).includes(+q.fam) && !(q.hw && (p.fw || []).includes(+q.fam))));
+  (q.fam === '' || q.fam == null || ((p.fm || []).includes(+q.fam) && !(q.hw && (p.fw || []).includes(+q.fam)))) &&
+  (!q.kd || (p.kd || '').includes(q.kd));
 
-export const docsSuffice = q => !q.words.trim() && !q.lk && q.clock === 'pub' && q.place !== 'none' && !q.folded && !q.topic && !q.fam && q.rows !== 't';
+export const docsSuffice = q => !q.words.trim() && !q.lk && q.clock === 'pub' && q.place !== 'none' && !q.folded && !q.topic && !q.fam && !q.kd && q.rows !== 't';
 
 export function fromDocs(docs, q, placesNone, docOK) {
   const T = blank();

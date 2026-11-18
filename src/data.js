@@ -70,6 +70,21 @@ export function ask(msg) {
 }
 export const post = msg => W?.postMessage(msg);
 
+// A second passage worker, for comparing the same question in another country.
+let W2 = null, w2Slug = null, seq2 = 0;
+const wait2 = new Map();
+export function ask2(S2, msg) {
+  if (w2Slug !== S2.slug) {
+    W2?.terminate();
+    W2 = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' }); w2Slug = S2.slug;
+    W2.onmessage = ({ data: m }) => { if (m.type === 'reply') { wait2.get(m.id)?.(m); wait2.delete(m.id); } };
+    const order = loadOrder(S2.years, null, []);
+    W2.postMessage({ type: 'init', base: new URL(S2.base, location.href).href, docs: S2.docs, places: S2.places.places || [], order, queue: order, opened: [], topics: S2.hasTopics, topicFam: Object.fromEntries((S2.topics || []).map(t => [t.id, t.fam])) });
+  }
+  const id = ++seq2;
+  return new Promise(res => { wait2.set(id, res); W2.postMessage({ ...msg, id }); });
+}
+
 let qid = 0;
 export function query(q) { W?.postMessage({ type: 'query', id: ++qid, q }); return qid; }
 export const lastQuery = () => qid;

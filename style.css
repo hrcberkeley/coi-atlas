@@ -680,3 +680,25 @@ body:not(.home) .guide-link { display: none; }
 .rowtabs button { padding: 3px 8px; border: 1px solid var(--btn-line); border-radius: 4px; color: var(--btn); font-size: 12px; font-weight: 600; background: var(--card); }
 .rowtabs button:hover { background: var(--btn-soft); border-color: var(--btn); }
 .rowtabs button[aria-checked="true"] { background: var(--btn); border-color: var(--btn); color: #fff; }
+blockquote.src.follow { font-size: 15px; margin-top: 2px; }
+.kindsel { display: inline-flex; align-items: center; gap: 6px; color: var(--grey); }
+.kindsel select { border: 1px solid var(--btn-line); border-radius: 4px; background: var(--card); color: var(--btn); padding: 2px 6px; font-size: 12.5px; }
+/* ---------- Compare two (18 Nov) ---------- */
+.cbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 14px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--btn-soft); }
+.cbar .clab { font-weight: 600; font-size: 13px; }
+.cbar .cpick { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cbar select { border: 1px solid var(--btn-line); border-radius: 4px; background: var(--card); color: var(--ink); padding: 3px 6px; font-size: 13px; max-width: 18rem; }
+.cbar .compare { padding: 3px 12px; border-radius: 4px; }
+.chint { margin: 4px 0 0; }
+.wstripw { display: inline-flex; align-items: flex-end; gap: 4px; }
+.wy { font-size: 10.5px; color: var(--grey); line-height: 1; }
+.wsum { margin: 0 0 6px; color: var(--grey); }
+.newtag { display: inline-block; font-size: 11px; font-weight: 600; color: var(--btn-dark); background: var(--btn-soft); border-radius: 3px; padding: 0 5px; margin-right: 6px; }
+details.repfold { border: 1px dashed var(--line); border-radius: 4px; padding: 6px 10px; margin: 0 0 8px; background: var(--card); }
+details.repfold summary { cursor: pointer; font-size: 13px; color: var(--grey); }
+details.repfold[open] summary { margin-bottom: 8px; }
+.wcmp { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; position: sticky; top: var(--top, 90px); background: var(--paper); z-index: 2; }
+@media (max-width: 900px) { .wcmp { display: none; } }
+.wpair > * { min-width: 0; }
+@media (max-width: 600px) { .cardfoot { flex-wrap: wrap; row-gap: 6px; } .cardfoot .otitle { flex-basis: 100%; } }
+@media (max-width: 600px) { .who { overflow-x: clip; } }

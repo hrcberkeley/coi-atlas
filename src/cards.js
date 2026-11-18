@@ -44,6 +44,8 @@ export function editions(app, doc) {
   return out;
 }
 
+// "the" before names such as Central African Republic, United Kingdom, Philippines
+const the = n => (/^(Central African|Dominican|Czech|United|Russian|Syrian|Netherlands|Philippines|Gambia|Bahamas|Comoros|Maldives|Congo|Democratic)|Republic|Islands/.test(n) && !/^the /i.test(n) ? 'the ' + n : n);
 export function card(app, p) {
   const doc = app.S.docs[p.d];
   const src = app.src(doc.s);
@@ -56,10 +58,12 @@ export function card(app, p) {
   if (hit > 350) { const a = p.t.lastIndexOf(' ', hit - 150); ex = '… ' + marked(p.t.slice(a < 0 ? 0 : a + 1, hit + 600), app.re) + ' …'; }
   return `<article class="card" data-key="${key}" tabindex="0" aria-label="Passage from ${esc(src.short)}, ${esc(fmtDate(doc.date))}, page ${p.pg}">
     <p class="meta"><span class="who">${esc(src.short)}</span> · ${typeTag(doc)} · ${esc(fmtDate(doc.date))}${wide(doc) ? ` · <span class="grey" title="${esc(doc.also.join(', '))}">covers ${num(doc.also.length + 1)} countries</span>` : ''}</p>
+    ${p.oc ? `<p class="mech mlabel">Names ${esc(the(p.oc))}, not ${esc(the(app.country?.name || 'this country'))}; the report covers several countries</p>` : ''}
     ${p.fw?.includes(+app.q?.fam) ? '<p class="mech mlabel">Grouped by its wording; no heading in the report files it here</p>' : ''}
     ${p.bt ? `<p class="before"><span class="mlabel">Before this</span>“${esc(p.bt)}${p.bt.length >= 160 ? '…' : ''}”</p>` : ''}
     <blockquote class="src${long ? ' clamp' : ''}"${en ? ' lang="en"' : ''}${ex ? ` data-ex="${esc(ex)}" data-full="${esc(marked(p.t, app.re))}"` : ''}>${ex || marked(p.t, app.re)}</blockquote>
     ${long ? '<button class="more-text" aria-expanded="false">Show all</button>' : ''}
+    ${p.at ? `<p class="mech mlabel">The text that follows it, page ${p.apg ?? p.pg}${p.at.length >= 700 ? ', shortened' : ''}</p><blockquote class="src follow"${en ? ' lang="en"' : ''}>${marked(p.at, app.re)}${p.at.length >= 700 ? '…' : ''}</blockquote>${!en && p.aen ? `<p class="mech small"><span class="mlabel">Machine translated</span> ${marked(p.aen, app.re)}</p>` : ''}` : ''}
     ${en ? '' : p.en
       ? `<button class="mt-toggle" aria-pressed="false" aria-expanded="false">Machine translated</button><div class="mt mech" hidden><span class="mlabel">Machine translated, may be incomplete · document catalogued as ${esc(doc.lang)}</span><p>${marked(p.en, app.re)}</p></div>`
       : `<p class="mech mlabel">catalogued as ${esc(doc.lang)} · not yet translated</p>`}
