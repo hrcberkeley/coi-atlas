@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "tutorial/walkthrough.html"
+        ],
+        "createdAt": "2026-11-18T09:35:11.060Z",
+        "reason": "Claude: inline kbd/code chips (1px x 6px padding) inside running text; conventional for inline code, all block containers have 12-18px padding"
+      }
+    ]
+  }
+}

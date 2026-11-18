@@ -624,3 +624,6 @@ body.home .brand .hrc { margin-bottom: 0; }
 .case-btn { max-width: 15rem; }
 .cl-row.bar .searchwrap { flex: 1 1 14rem; }
 .country-pick select { max-width: 20rem; }
+body:not(.home) .guide-link { display: none; }
+.guide-line { margin: 2px 0 0; color: var(--grey); }
+.guide-line a { color: var(--link); }

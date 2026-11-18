@@ -44,6 +44,7 @@ export async function renderWelcome(main, idx, refreshIndex) {
           <select class="af" aria-label="A topic to look for across countries"><option value="">a topic…</option></select>
           <button class="look" type="submit">Look</button>
         </div>
+        <p class="guide-line small">New here? <a href="guide.html">Follow one case from first search to Word file</a>, with screenshots.</p>
         <label class="fbox small"><input type="checkbox" class="ai"${X.wide ? ' checked' : ''}> <span>Include reports that cover 10 or more countries</span></label>
       </form>
     </header>

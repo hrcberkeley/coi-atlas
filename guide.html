@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How to use the atlas: a worked case · Country Conditions Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one reading column with wider screenshots, a contents rail on wide screens. The atlas's own paper, ink and Berkeley-blue frame; orange marks the lawyer's own work, as it does in the atlas. */
+:root {
+  --paper: #FAF8F4; --card: #FFFFFF; --ink: #1F2328; --soft: #3B4048; --grey: #5A616C; --line: #E5E1DA;
+  --brand: #002676; --gold: #FDB515; --link: #00447C; --brand-soft: #E9EDF5;
+  --you: #B4470F; --you-soft: #FBEADD; --quote: #F3F0EA;
+  --serif: "Source Serif 4", "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #15171B; --card: #1D2026; --ink: #ECEAE6; --soft: #C9C6C0; --grey: #9AA0A8; --line: #2E323A;
+  --brand: #9DB4F0; --gold: #E7B53A; --link: #9DC1F2; --brand-soft: #1E2636;
+  --you: #F0956A; --you-soft: #3A2419; --quote: #20232A; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #15171B; --card: #1D2026; --ink: #ECEAE6; --soft: #C9C6C0; --grey: #9AA0A8; --line: #2E323A;
+  --brand: #9DB4F0; --gold: #E7B53A; --link: #9DC1F2; --brand-soft: #1E2636;
+  --you: #F0956A; --you-soft: #3A2419; --quote: #20232A; color-scheme: dark }
+body { background: var(--paper); color: var(--ink); font: 400 17px/1.65 var(--serif); }
+.wrap { max-width: 78rem; margin: 0 auto; padding-block: 0 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 56px; }
+nav.toc { position: sticky; top: calc(24px + env(safe-area-inset-top, 0px)); align-self: start; max-height: calc(100vh - 48px); overflow-y: auto; padding-top: 48px; font: 400 13px/1.45 var(--sans); }
+nav.toc p { margin: 0 0 8px; font-weight: 600; font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); }
+nav.toc ol { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 3px; }
+nav.toc a { color: var(--soft); text-decoration: none; display: block; padding: 2px 0; }
+nav.toc a:hover { color: var(--link); text-decoration: underline; }
+nav.toc .part { color: var(--ink); font-weight: 600; margin-top: 4px; }
+main { min-width: 0; max-width: 60rem; }
+header.top { padding: 48px 0 8px; border-bottom: 1px solid var(--line); }
+.eyebrow { font: 600 12px/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--brand); margin: 0 0 14px; }
+.eyebrow::after { content: ""; display: block; width: 32px; height: 2px; background: var(--gold); margin-top: 8px; }
+h1 { font: 600 clamp(32px, 5vw, 46px)/1.08 var(--serif); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+.lede { font-size: 20px; line-height: 1.55; color: var(--soft); max-width: 40rem; margin: 14px 0 18px; }
+.meta { font: 400 13px/1.5 var(--sans); color: var(--grey); margin: 0 0 24px; }
+h2 { font: 600 28px/1.2 var(--serif); letter-spacing: -.01em; margin: 64px 0 6px; text-wrap: balance; scroll-margin-top: 24px; }
+h2 .pn { display: block; font: 600 12px/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--brand); margin-bottom: 8px; }
+.partlede { color: var(--soft); max-width: 42rem; margin: 0 0 8px; }
+section.step { margin-top: 44px; scroll-margin-top: 24px; }
+h3 { font: 600 20px/1.3 var(--sans); letter-spacing: -.01em; margin: 0 0 10px; display: flex; gap: 12px; align-items: baseline; text-wrap: balance; }
+h3 .n { flex: none; font: 600 13px/1 var(--sans); color: var(--brand); border: 1.5px solid var(--brand); border-radius: 50%; width: 28px; height: 28px; display: inline-grid; place-items: center; transform: translateY(-2px); font-variant-numeric: tabular-nums; }
+p { margin: 0 0 14px; max-width: 42rem; }
+.do { font: 400 15px/1.6 var(--sans); background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; margin: 0 0 16px; max-width: 42rem; }
+.do b { font-weight: 600; }
+.do .lab { display: block; font: 600 11px/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--grey); margin-bottom: 6px; }
+kbd, code { font: 500 13.5px/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--quote); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+figure { margin: 18px 0 22px; }
+figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+figcaption { font: 400 13.5px/1.5 var(--sans); color: var(--grey); margin-top: 8px; max-width: 46rem; }
+figcaption b { color: var(--ink); font-weight: 600; }
+.finding { border-left: 0; background: var(--you-soft); border-radius: 6px; padding: 14px 18px; margin: 0 0 18px; max-width: 44rem; }
+.finding .lab { display: block; font: 600 11px/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--you); margin-bottom: 6px; }
+.finding p { margin: 0 0 8px; }
+.finding p:last-child { margin-bottom: 0; }
+.finding cite { display: block; font: 400 13px/1.5 var(--sans); color: var(--soft); font-style: normal; }
+blockquote { margin: 0 0 8px; font-style: italic; }
+.note { font: 400 14.5px/1.6 var(--sans); color: var(--soft); border-top: 1px dotted var(--grey); padding-top: 10px; margin: 0 0 16px; max-width: 42rem; }
+.note b { color: var(--ink); }
+.case { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--card); margin: 28px 0 8px; overflow: hidden; }
+.case > div { padding: 16px 18px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); min-width: 0; }
+.case dt { font: 600 11px/1.2 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--grey); margin-bottom: 6px; }
+.case dd { margin: 0; font: 400 15.5px/1.5 var(--sans); }
+ol.questions { font: 400 16px/1.6 var(--sans); max-width: 42rem; padding-left: 1.3em; }
+ol.questions li { margin-bottom: 6px; }
+.tablewrap { overflow-x: auto; margin: 16px 0 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.5 var(--sans); min-width: 44rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--grey); background: var(--quote); }
+tr:last-child td { border-bottom: 0; }
+td .src { color: var(--grey); font-size: 13px; }
+ul.features { columns: 2 18rem; column-gap: 32px; font: 400 14.5px/1.55 var(--sans); padding-left: 1.1em; margin: 12px 0; }
+ul.features li { break-inside: avoid; margin-bottom: 6px; }
+a { color: var(--link); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; border-radius: 2px; }
+footer { margin-top: 64px; padding-top: 16px; border-top: 1px solid var(--line); font: 400 13px/1.6 var(--sans); color: var(--grey); }
+@media (max-width: 980px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  nav.toc { position: static; max-height: none; padding-top: 28px; }
+  nav.toc ol { display: none; }
+  nav.toc ol.parts { display: grid; }
+  body { font-size: 16.5px; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <p>Contents</p>
+  <ol class="parts">
+    <li><a class="part" href="#case">The case</a></li>
+    <li><a class="part" href="#wide">I. Start wide</a></li>
+  </ol>
+  <ol>
+    <li><a href="#s1">1. The first page</a></li>
+    <li><a href="#s2">2. One word, every country</a></li>
+    <li><a href="#s3">3. Counts and shares</a></li>
+    <li><a href="#s4">4. A topic, every country</a></li>
+    <li><a href="#s5">5. Similar wording, anywhere</a></li>
+  </ol>
+  <ol class="parts"><li><a class="part" href="#car">II. The destination</a></li></ol>
+  <ol>
+    <li><a href="#s6">6. The country page</a></li>
+    <li><a href="#s7">7. Open a case</a></li>
+    <li><a href="#s8">8. Topics</a></li>
+    <li><a href="#s9">9. Compare sources</a></li>
+    <li><a href="#s10">10. Exact words</a></li>
+    <li><a href="#s11">11. Two sources side by side</a></li>
+    <li><a href="#s12">12. The page itself</a></li>
+    <li><a href="#s13">13. Other languages</a></li>
+    <li><a href="#s14">14. Similar wording here</a></li>
+    <li><a href="#s15">15. The newest reports</a></li>
+  </ol>
+  <ol class="parts"><li><a class="part" href="#ng">III. If she is sent on</a></li></ol>
+  <ol>
+    <li><a href="#s16">16. Switch country</a></li>
+    <li><a href="#s17">17. The latest guidance</a></li>
+    <li><a href="#s18">18. Filters</a></li>
+  </ol>
+  <ol class="parts"><li><a class="part" href="#out">IV. Take it out</a></li></ol>
+  <ol>
+    <li><a href="#s19">19. The evidence file</a></li>
+    <li><a href="#s20">20. Word and the rest</a></li>
+  </ol>
+  <ol class="parts">
+    <li><a class="part" href="#found">What we found</a></li>
+    <li><a class="part" href="#limits">Before you rely on it</a></li>
+    <li><a class="part" href="#index">Every feature, by step</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="top">
+  <p class="eyebrow"><a href="./" style="color:inherit;text-decoration:none">Investigations Lab · Country Conditions Atlas</a></p>
+  <h1>Building R.'s Country File</h1>
+  <p class="lede">A walkthrough of the atlas, following one case from the first search to a Word file of evidence. Every screen below is the real atlas, and every finding quoted is a real passage in its collection.</p>
+  <p class="meta">The client is fictional. The reports are not. Screens and counts as of 18 November 2026; the collection grows, so your numbers may differ.</p>
+</header>
+
+<h2 id="case"><span class="pn">The case</span>A transfer to a third country, and what may come after</h2>
+<dl class="case">
+  <div><dt>Client</dt><dd>R., a Nigerian woman in a relationship with another woman</dd></div>
+  <div><dt>Transferred to</dt><dd>Central African Republic, under a third-country arrangement</dd></div>
+  <div><dt>Planned date</dt><dd>October 2026</dd></div>
+  <div><dt>Risk after that</dt><dd>Onward removal from the Central African Republic to Nigeria</dd></div>
+  <div><dt>Decided in</dt><dd>United States, immigration court</dd></div>
+</dl>
+<p>I am R.'s lawyer. To argue that sending her to the Central African Republic would expose her to violations of her human rights, I need what institutions have written, and when, about three things:</p>
+<ol class="questions">
+  <li>How the law and society in the Central African Republic treat women in same-sex relationships, over the years and now.</li>
+  <li>What else a woman alone would face there: armed conflict, sexual violence, and whether anyone protects her.</li>
+  <li>What would happen to her if the Central African Republic sent her on to Nigeria.</li>
+</ol>
+<p>The atlas helps me find and quote. It does not judge: it will not say whether a country is safe or which report is right. Where sources disagree, it shows both, and the weighing is mine.</p>
+
+<h2 id="wide"><span class="pn">Part I</span>Start wide: where is this written about?</h2>
+<p class="partlede">Before opening any one country, I look across all of them. This tells me how much material exists, where it is concentrated, and whether my client's situation is documented elsewhere in similar words.</p>
+
+<section class="step" id="s1">
+  <h3><span class="n">1</span>The first page</h3>
+  <p>The first page is a search box over the whole collection: about 83,000 reports on 198 countries, from 1986 to 2026. Below it is the map. I can type words, choose a topic, or simply pick a country.</p>
+  <figure><img src="guide/01-home.jpg" alt="The first page of the atlas: title, a one-line description, the search box with a topic picker, and the world map below." width="1440" height="900" loading="lazy"><figcaption><b>The first page.</b> “Search all countries” works across every country at once. The box beside it offers a topic instead of words.</figcaption></figure>
+</section>
+
+<section class="step" id="s2">
+  <h3><span class="n">2</span>One word, every country</h3>
+  <div class="do"><span class="lab">Do</span>Type <kbd>lesbian</kbd> in “Search all countries” and press <b>Look</b>.</div>
+  <p>The map shades every country by how many of its documents hold the word: darker means more. The list beneath ranks them, with a strip showing the years the documents were published.</p>
+  <figure><img src="guide/02-lesbian-map.jpg" alt="World map shaded by the number of documents holding the word lesbian." width="1440" height="900" loading="lazy"><figcaption><b>Where the word appears.</b> Pointing at a country shows its count. Clicking it opens that country with the same word already searched.</figcaption></figure>
+  <figure><img src="guide/03-lesbian-list.jpg" alt="Ranked list of countries for the word lesbian: Nigeria first with 122 documents." width="1440" height="900" loading="lazy"><figcaption><b>The ranked list.</b> Nigeria comes first, with 122 documents, published in most years up to 2026.</figcaption></figure>
+  <div class="finding"><span class="lab">Finding</span><p>Nigeria is the country in the collection with the most documents that mention lesbian women. For a removal that could end in Nigeria, that matters: there is a deep record to draw on.</p></div>
+  <p class="note"><b>How words are counted here.</b> A document counts when it holds the word anywhere. A phrase in quotes, such as <kbd>"blood feud"</kbd>, counts only where the words stand next to each other. Word endings such as <kbd>lesbian*</kbd> are checked once you open a country.</p>
+</section>
+
+<section class="step" id="s3">
+  <h3><span class="n">3</span>Counts and shares</h3>
+  <div class="do"><span class="lab">Do</span>Click <b>share of its documents</b> above the list.</div>
+  <p>Countries with large collections have more of everything. Ranking by share, the fraction of a country's own documents that hold the word, is often the fairer comparison. Countries with under 50 documents go last, because one document out of two is not a pattern.</p>
+  <figure><img src="guide/04-share.jpg" alt="The same list ranked by share of each country's documents." width="1440" height="900" loading="lazy"><figcaption><b>Ranked by share.</b> The map's shading follows the ranking you choose.</figcaption></figure>
+</section>
+
+<section class="step" id="s4">
+  <h3><span class="n">4</span>A topic, every country</h3>
+  <div class="do"><span class="lab">Do</span>Choose <b>Sexual orientation and gender identity</b> from the topic picker, then point at the Central African Republic on the map.</div>
+  <p>A topic gathers passages filed under it by the reports' own headings, or grouped by their wording. Reference lists and tables of contents are left out.</p>
+  <figure><img src="guide/05-topic-map.jpg" alt="World map for the topic sexual orientation and gender identity, with the Central African Republic highlighted: 18 of its 771 documents have passages on the topic." width="1440" height="900" loading="lazy"><figcaption><b>The destination, from a distance.</b> Only 18 of the Central African Republic's 771 documents have passages on this topic, 2%.</figcaption></figure>
+  <div class="finding"><span class="lab">Finding</span><p>The record on sexual orientation in the Central African Republic is thin. That is itself worth saying in a brief: the reports that exist repeatedly note that the absence of reported abuse may reflect people hiding, not safety (step 12).</p></div>
+</section>
+
+<section class="step" id="s5">
+  <h3><span class="n">5</span>Similar wording, anywhere</h3>
+  <div class="do"><span class="lab">Do</span>Switch the menu inside the search box from “Exact words” to <b>Similar wording</b>. Type <kbd>lesbian women are beaten by their relatives and the police do not protect them</kbd> and press <b>Look</b>.</div>
+  <p>Similar wording finds passages that say something close to my sentence, in other words or other languages. The first time, the browser downloads a language model, about 135 MB, once per visit. My sentence stays on my computer.</p>
+  <figure><img src="guide/06-similar-across.jpg" alt="Closest passages anywhere: Home Office reports on Russia, Egypt, Kenya and Pakistan about police failing to protect LGBT women." width="1440" height="900" loading="lazy"><figcaption><b>Closest passages, anywhere.</b> Each shows its country, source, date and page, and “Open the page” goes straight to it. The countries beneath are ranked by how many of the closest passages are theirs.</figcaption></figure>
+  <p class="note"><b>Use it to find patterns.</b> Similar wording is machine-made. It can miss passages and include loose ones, and its country counts are among the closest 2,000 passages, not totals. It is a way in, not proof.</p>
+</section>
+
+<h2 id="car"><span class="pn">Part II</span>The destination: Central African Republic</h2>
+<p class="partlede">Now I open the country itself, record my case details, and work through what each source said, year by year, up to the most recent reports.</p>
+
+<section class="step" id="s6">
+  <h3><span class="n">6</span>The country page</h3>
+  <div class="do"><span class="lab">Do</span>Click the Central African Republic on the map or in the list.</div>
+  <p>The country page shows every institution that wrote about the country, by year. Each mark is a year in which that source published, coloured by the kind of document. The numbers on the right are passages. On the left, a map of provinces and the places the texts name.</p>
+  <figure><img src="guide/07-car-landscape.jpg" alt="The Central African Republic page: institutions down the side, years across, coloured marks for each year a source published." width="1440" height="900" loading="lazy"><figcaption><b>Who wrote, and when.</b> The bar at the top holds “◂ All countries”, the country (click it to switch), the search, and the Case button. Below the grid, the atlas says how many sources in the collection published nothing on this country.</figcaption></figure>
+</section>
+
+<section class="step" id="s7">
+  <h3><span class="n">7</span>Open a case</h3>
+  <div class="do"><span class="lab">Do</span>Click <b>Evidence</b>, name a new case (<kbd>R. — Nigeria, transfer to CAR</kbd>) and add my first point. Then open <b>Case details</b> and set the key date to <kbd>Oct 2026</kbd> and “decided in” to <kbd>United States</kbd>.</div>
+  <p>The key date is the date that matters for the case, here the planned transfer. It is drawn as a line on every timeline, and comparisons pair each source's passage nearest that date with its latest. “Decided in” brings the deciding country's own institutions to the top of every list.</p>
+  <figure><img src="guide/08-case-panel.jpg" alt="The Case panel open: case name, place, key date October 2026, decided in United States." width="1440" height="420" loading="lazy"><figcaption><b>The Case panel.</b> These details are saved with the case, in this browser only, and used to format citations.</figcaption></figure>
+</section>
+
+<section class="step" id="s8">
+  <h3><span class="n">8</span>Topics</h3>
+  <div class="do"><span class="lab">Do</span>Click <b>Topics</b> above the grid.</div>
+  <p>The rows become subjects instead of institutions: security, health, women, detention, and so on. The key date appears as an orange line at the right.</p>
+  <figure><img src="guide/09-car-topics.jpg" alt="The Topics view of the Central African Republic: rows for each subject family, with passage counts." width="1440" height="900" loading="lazy"><figcaption><b>Subjects, by year.</b> “Women: violence, marriage, family” has 2,970 passages; “Sexual orientation and gender identity” only 38.</figcaption></figure>
+</section>
+
+<section class="step" id="s9">
+  <h3><span class="n">9</span>Compare sources on a topic</h3>
+  <div class="do"><span class="lab">Do</span>Choose the family <b>Sexual orientation and gender identity</b>, then <b>Compare sources</b>.</div>
+  <p>For each source, the atlas shows the passage nearest the key date and the latest one, with the clearest passages on the topic first. Reports that cover 10 or more countries are left out unless I tick the box. That keeps worldwide reports from drowning a small country.</p>
+  <figure><img src="guide/10-car-sogi-compare.jpg" alt="Compare sources on sexual orientation and gender identity in the Central African Republic: State Department passages first, then ACCORD." width="1440" height="900" loading="lazy"><figcaption><b>Four sources wrote on this; nineteen did not.</b> The names of the silent sources are listed too, which is useful when a judge asks what else was consulted.</figcaption></figure>
+</section>
+
+<section class="step" id="s10">
+  <h3><span class="n">10</span>Exact words, with endings and alternatives</h3>
+  <div class="do"><span class="lab">Do</span>Type <kbd>lesbian*, homosexual*, "same sex", LGBT*</kbd> in the search box and press Enter.</div>
+  <p>A star matches word endings (<kbd>LGBT*</kbd> finds LGBTI and LGBTQI+), quotes make a phrase, and a comma means “either”. The chip below the bar shows how many passages each part found, so I can see which words carry the result.</p>
+  <figure><img src="guide/11-car-words.jpg" alt="Search results for lesbian, homosexual, same sex and LGBT in the Central African Republic: 153 passages in 34 documents from 4 sources." width="1440" height="900" loading="lazy"><figcaption><b>153 passages in 34 documents.</b> The US State Department wrote on this every year from 2010 to 2024: a continuous record.</figcaption></figure>
+</section>
+
+<section class="step" id="s11">
+  <h3><span class="n">11</span>Two sources side by side</h3>
+  <div class="do"><span class="lab">Do</span>In Compare sources, tick <b>Side by side</b> for two institutions, here the State Department and ReliefWeb.</div>
+  <p>The two sources line up year by year. This is how I find agreement, silence, and contradiction.</p>
+  <figure><img src="guide/12-car-side-by-side.jpg" alt="State Department and ReliefWeb side by side, aligned by year, for the same words." width="1440" height="900" loading="lazy"><figcaption><b>Aligned by year.</b> Where one source is silent in a year, the atlas says so.</figcaption></figure>
+  <div class="finding"><span class="lab">A disagreement to explain</span>
+    <p>A 2018 report published on ReliefWeb (All Survivors Project, on sexual violence against men and boys) states that consensual same-sex relations are not criminalised under national law. The State Department, every year, reports a penal provision against “public expression of love” between persons of the same sex.</p>
+    <p>The 2024 State Department report reconciles them: the law criminalized same-sex conduct in public, but did not strictly criminalize private conduct. The atlas shows both; I explain the difference in my brief.</p>
+    <cite>All Survivors Project via ReliefWeb, 23 Feb 2018, p. 33 · US Department of State, 2023 Country Report on Human Rights Practices: Central African Republic, 23 Apr 2024, p. 17</cite></div>
+</section>
+
+<section class="step" id="s12">
+  <h3><span class="n">12</span>The page itself</h3>
+  <div class="do"><span class="lab">Do</span>Click a passage's page number (<b>p. 17 ▸</b>).</div>
+  <p>The document opens at the page, as it was printed, with the passage outlined. <b>◂ Match · 2 of 6 · Match ▸</b> steps through every passage matching my words. On the left, the document's facts and its <b>editions</b>: the same report in earlier years, one click each. On the right, the passage's text, similar wording in other documents, and the two buttons I use most.</p>
+  <figure><img src="guide/13-viewer.jpg" alt="The document viewer: the State Department 2024 report at page 17, the criminalization passage outlined, the editions list on the left." width="1440" height="900" loading="lazy"><figcaption><b>The printed page.</b> “Add to evidence” saves the passage verbatim, with its citation. “Copy quote and citation” puts both on the clipboard.</figcaption></figure>
+  <div class="finding"><span class="lab">Finding: the situation now</span>
+    <blockquote>“…created a social environment wherein maintaining a same-sex relationship was extraordinarily dangerous.”</blockquote>
+    <p>The same report finds no legal protection against discrimination, a constitutional ban on same-sex marriage, and no known organizations defending LGBTQI+ people. Earlier editions show two such groups disbanded in 2022.</p>
+    <cite>US Department of State, 2023 Country Report on Human Rights Practices: Central African Republic, 23 Apr 2024, pp. 17–18</cite></div>
+  <div class="finding"><span class="lab">Finding: the history</span>
+    <p>Following the editions back, the penal provision on “public expression of love” between persons of the same sex appears in every report from 2011 onward, with prison terms of six months to two years. Since at least 2012, societal discrimination is described as “entrenched”.</p>
+    <cite>US Department of State, Country Reports on Human Rights Practices: Central African Republic, 2011–2024 editions</cite></div>
+</section>
+
+<section class="step" id="s13">
+  <h3><span class="n">13</span>Other languages, and what a card shows</h3>
+  <p>Many reports are not in English. The atlas translated them by machine and searches both texts. A card for a long passage shows the part that matches, between ellipses; “Show all” gives the whole passage. Translations are always labelled, and the original is one click away.</p>
+  <figure><img src="guide/14-machine-translation.jpg" alt="UNHCR passages on LGBTI persons in the Central African Republic, including a French report from 2022." width="1440" height="900" loading="lazy"><figcaption><b>UNHCR, 2023 and 2022.</b> The 2022 report is in French (“Stigmatisation et discrimination à l'égard des LGBTI…”); its card offers the machine translation.</figcaption></figure>
+</section>
+
+<section class="step" id="s14">
+  <h3><span class="n">14</span>Similar wording inside a country</h3>
+  <div class="do"><span class="lab">Do</span>Switch the search to <b>Similar wording</b> and type <kbd>women and girls raped by members of armed groups</kbd>.</div>
+  <p>My client would arrive as a woman alone, in a country at war. Similar wording finds passages about this risk however each report phrased it. For each source, the comparison pairs the passage nearest the key date with the latest.</p>
+  <figure><img src="guide/15-car-similar-wording.jpg" alt="Compare sources for wording like women and girls raped by members of armed groups: State Department and ACCORD passages from 2018." width="1440" height="900" loading="lazy"><figcaption><b>Five sources, 300 closest passages.</b> The State Department, 2018: members of armed groups “continued to rape girls and women with impunity.”</figcaption></figure>
+</section>
+
+<section class="step" id="s15">
+  <h3><span class="n">15</span>The newest reports</h3>
+  <p>The collection runs to the autumn of 2026. The newest reports on the Central African Republic are often in French, from UN agencies and European asylum offices. Opening one shows the French page with the passage outlined, and the machine translation underneath in the side panel.</p>
+  <figure><img src="guide/15b-recent-french.jpg" alt="A January 2026 French report by the Belgian asylum office on security in Bangui, with the passage on gender-based violence outlined and its machine translation on the right." width="1440" height="900" loading="lazy"><figcaption><b>CGRS-CEDOCA (Belgium), 21 January 2026.</b> The outlined passage cites the UN and the International Crisis Group.</figcaption></figure>
+  <div class="finding"><span class="lab">Finding: the most recent data</span>
+    <p>Citing UN figures, the report states that two people are victims of gender-based violence every hour, and that nearly 16,200 cases were recorded between January and September 2024, 34% of them rapes, mostly of girls and women.</p>
+    <cite>CGRS-CEDOCA, République centrafricaine (RCA): Situation sécuritaire à Bangui, 21 Jan 2026, p. 26 (machine translation from French; check the original)</cite></div>
+</section>
+
+<h2 id="ng"><span class="pn">Part III</span>If she is sent on: Nigeria</h2>
+<p class="partlede">A third-country transfer is not the end of the risk. If the Central African Republic sends R. on to Nigeria, the conditions there matter too.</p>
+
+<section class="step" id="s16">
+  <h3><span class="n">16</span>Switch country, keep the search</h3>
+  <div class="do"><span class="lab">Do</span>Click the country name in the bar and choose <b>Nigeria</b>. Search <kbd>"same sex marriage"</kbd>.</div>
+  <p>Switching country keeps the case, the key date and the deciding country. The search carries over too.</p>
+  <figure><img src="guide/16-nigeria-words.jpg" alt="Nigeria page for the phrase same sex marriage: 264 passages in 74 documents from 11 sources." width="1440" height="900" loading="lazy"><figcaption><b>264 passages, 74 documents, 11 sources.</b> The phrase points to the Same Sex Marriage (Prohibition) Act of 2014; the marks show who wrote about it, and when.</figcaption></figure>
+</section>
+
+<section class="step" id="s17">
+  <h3><span class="n">17</span>The latest guidance</h3>
+  <div class="do"><span class="lab">Do</span>Search <kbd>lesbian*, women</kbd> and open the UK Home Office's June 2025 note at page 4.</div>
+  <figure><img src="guide/17-nigeria-viewer.jpg" alt="The UK Home Office June 2025 country note on Nigeria, page 4, with the passage on sharia law and same-sex acts between women outlined." width="1440" height="900" loading="lazy"><figcaption><b>Home Office, June 2025.</b> The editions list on the left goes back to 2015, so the history of this guidance is one click away.</figcaption></figure>
+  <div class="finding"><span class="lab">Finding: specific to a woman</span>
+    <p>Secular law in Nigeria targets sex between men. Sharia, which applies to Muslims in the 12 northern states, also criminalises same-sex acts between women.</p>
+    <blockquote>“Penalties for ‘lesbianism’ range from death to flogging and imprisonment.”</blockquote>
+    <cite>UK Home Office, Country Policy and Information Note Nigeria: Sexual orientation, gender identity and expression, and sex characteristics, version 4.0, June 2025, p. 4</cite></div>
+</section>
+
+<section class="step" id="s18">
+  <h3><span class="n">18</span>Filters</h3>
+  <div class="do"><span class="lab">Do</span>Click <b>Show filters</b>.</div>
+  <p>Filters narrow the documents by language, kind of institution, where the institution is based, and years. “Only the newest edition of each series” and “Hide reports that cover 10 or more other countries” are here too. Every filter shows how many documents it covers before I tick it.</p>
+  <figure><img src="guide/18-filters.jpg" alt="The filters panel for Nigeria: language of the document, kind of institution, where the institution is based." width="1440" height="900" loading="lazy"><figcaption><b>Filters.</b> The counter above the grid always says how many filters are on; “Clear all filters” resets them.</figcaption></figure>
+</section>
+
+<h2 id="out"><span class="pn">Part IV</span>Take it out</h2>
+<p class="partlede">Everything I added along the way is in the Evidence drawer, under the points I wrote.</p>
+
+<section class="step" id="s19">
+  <h3><span class="n">19</span>The evidence file</h3>
+  <div class="do"><span class="lab">Do</span>Click <b>Evidence</b>.</div>
+  <p>Each passage is kept verbatim, with a citation written for the venue I chose (here, US immigration court and BIA). I can write a note under each passage, move passages between my points, or open the page again. Nothing leaves this browser.</p>
+  <figure><img src="guide/19-evidence.jpg" alt="The Evidence drawer: case name, venue, the lawyer's points, and a State Department passage with its citation." width="1440" height="900" loading="lazy"><figcaption><b>Points in my words, passages in theirs.</b> The atlas marks what is mine (points and notes) and adds nothing else.</figcaption></figure>
+</section>
+
+<section class="step" id="s20">
+  <h3><span class="n">20</span>Word, and the rest</h3>
+  <p>At the bottom of the drawer: a <b>Word document</b> to write the submission from, a <b>source list</b> to paste into a document I already have, a <b>backup</b> to move the case to another computer or a colleague, and <b>Print</b>.</p>
+  <figure><img src="guide/20-exports.jpg" alt="The bottom of the Evidence drawer: the Nigeria point with the Home Office passage and its citation, and the export buttons." width="1440" height="900" loading="lazy"><figcaption><b>Take it out.</b> The Word file keeps my points as headings, the quotations under them, and a source list in the same order.</figcaption></figure>
+</section>
+
+<h2 id="found"><span class="pn">Summary</span>What we found</h2>
+<div class="tablewrap"><table>
+  <thead><tr><th>Question</th><th>What the record says</th><th>Source and date</th></tr></thead>
+  <tbody>
+    <tr><td>Is same-sex intimacy criminal in the Central African Republic?</td><td>The law punishes it in public, with six months to two years in prison; private conduct is not strictly criminalized. One 2018 report says it is not criminalised at all.</td><td class="src">US State Dept, 2011–2024 editions; All Survivors Project via ReliefWeb, 2018</td></tr>
+    <tr><td>How does society treat lesbian women there?</td><td>Discrimination “entrenched” since at least 2012. In the latest report, a same-sex relationship is “extraordinarily dangerous”, with no protective law and no known support organizations.</td><td class="src">US State Dept, Apr 2024 and earlier</td></tr>
+    <tr><td>Why so few reports of abuse?</td><td>The reports themselves say the absence of reports may reflect people hiding their identity, or the difficulty of tracing violence in a war.</td><td class="src">US State Dept, 2023 and 2024; ACCORD, Dec 2018</td></tr>
+    <tr><td>What would a woman alone face?</td><td>Sexual violence by armed groups “with impunity”; about 16,200 gender-based violence cases recorded in January–September 2024, a third of them rapes.</td><td class="src">US State Dept, 2018; CGRS-CEDOCA, Jan 2026</td></tr>
+    <tr><td>If she is sent on to Nigeria?</td><td>Sharia in 12 northern states criminalises sex between women; penalties range from death to flogging and imprisonment. Federal law bans same-sex marriage and LGBT+ groups.</td><td class="src">UK Home Office, June 2025</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="limits"><span class="pn">Care</span>Before you rely on it</h2>
+<ul class="features">
+  <li><b>Open the page.</b> Quote from the document as printed, not only from a card.</li>
+  <li><b>Translations are machine-made.</b> They can be wrong; the original is one click away.</li>
+  <li><b>Topics and similar wording are made by models.</b> They are a way in, not a complete list. Exact words are exact.</li>
+  <li><b>Silence is not safety.</b> A source with nothing on a subject may not have looked.</li>
+  <li><b>Regional and worldwide reports</b> are filed under every country they name. Check that a passage is about your country.</li>
+  <li><b>This is a selection from ecoi.net,</b> not all of it.</li>
+</ul>
+
+<h2 id="index"><span class="pn">Reference</span>Every feature, by step</h2>
+<ul class="features">
+  <li>Search all countries, exact words: <a href="#s2">2</a></li>
+  <li>Rank by documents or share: <a href="#s3">3</a></li>
+  <li>A topic across countries, map readout: <a href="#s4">4</a></li>
+  <li>Similar wording across countries, closest passages anywhere: <a href="#s5">5</a></li>
+  <li>The country page, institutions by year, places map: <a href="#s6">6</a></li>
+  <li>Evidence: start a case, add a point: <a href="#s7">7</a>, <a href="#s19">19</a></li>
+  <li>Case panel: key date, deciding country: <a href="#s7">7</a></li>
+  <li>Topics view: <a href="#s8">8</a></li>
+  <li>Compare sources, clearest first, hide worldwide reports: <a href="#s9">9</a></li>
+  <li>Word endings (*), phrases (" "), either (,), per-word counts: <a href="#s10">10</a></li>
+  <li>Side by side: <a href="#s11">11</a></li>
+  <li>Document viewer, match stepping, editions, add to evidence, copy quote: <a href="#s12">12</a></li>
+  <li>Machine translation, match excerpts on cards: <a href="#s13">13</a>, <a href="#s15">15</a></li>
+  <li>Similar wording inside a country: <a href="#s14">14</a></li>
+  <li>Switch country and keep the case: <a href="#s16">16</a></li>
+  <li>Filters: language, institution, place, editions, worldwide reports: <a href="#s18">18</a></li>
+  <li>Exports: Word, source list, backup, print: <a href="#s20">20</a></li>
+  <li>“◂ All countries” takes your words back to the search across countries: <a href="#s6">6</a></li>
+</ul>
+
+<footer><a href="./">Open the atlas</a> · <a href="about.html">About the atlas</a><br>Investigations Lab · Country Conditions Atlas · Documents collected by ecoi.net. The client in this walkthrough is fictional; the passages quoted are from the reports named, as held in the atlas on 18 November 2026.</footer>
+</main>
+</div>
+
+</body>
+</html>
