@@ -520,3 +520,40 @@ ul.fams > li > .tdetail { grid-column: 2; }
 .mnav { display: inline-flex; align-items: center; gap: 8px; color: var(--grey); font-size: 13.5px; }
 .mnav[hidden] { display: none; }
 .mnav .pbtn { min-width: 0; }
+
+/* Look across countries (welcome page): one ink, five steps by rank; no colour judges a country. */
+.across { margin: 16px 0 0; display: grid; gap: 8px; }
+.across-lead { margin: 0; font: 400 16px/1.5 var(--serif); color: #2A2F36; }
+.across-lead b { color: var(--ink); }
+.across-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.across .af { border: 1px solid var(--line); background: var(--card); border-radius: 3px; padding: 4px 7px; font-size: 14px; color: var(--ink); max-width: 100%; }
+.across .look { background: var(--brand); color: #fff; border-radius: 3px; padding: 5px 16px; font-size: 14px; font-weight: 500; }
+.across .look:hover { background: var(--link); }
+.worldmap.across-on .on { fill: #F1EEE8; }
+.worldmap.across-on circle.on { fill: #E2DDD4; }
+.worldmap.across-on .q1 { fill: var(--m1); } .worldmap.across-on .q2 { fill: var(--m2); } .worldmap.across-on .q3 { fill: var(--m3); }
+.worldmap.across-on .q4 { fill: var(--m4); } .worldmap.across-on .q5 { fill: var(--m5); }
+.worldmap.across-on .on.hov { fill: var(--brand); }
+.across-out { margin-top: 18px; }
+.across-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.across-head p { margin: 0; font-size: 15px; }
+.across-cols, .across-list button { display: grid; grid-template-columns: minmax(9rem, 1.4fr) 6rem 7rem minmax(0, 2fr); gap: 12px; align-items: center; }
+.across-cols { padding: 8px 2px 4px; }
+.across-list { list-style: none; margin: 0; padding: 0; }
+.across-list li { border-bottom: 1px solid var(--line); }
+.across-list button { width: 100%; text-align: left; padding: 5px 2px; font-size: 14px; }
+.across-list button:hover { background: var(--brand-soft); }
+.across-list button:hover .nm { color: var(--brand); text-decoration: underline; }
+.across-list .n { font-weight: 600; }
+.ystrip { display: block; max-width: 100%; height: 18px; }
+.ystrip rect { fill: var(--m4); }
+.ystrip line { stroke: var(--line); stroke-width: 1; }
+.across-more summary { cursor: pointer; color: var(--link); padding: 8px 2px; font-size: 14px; }
+.across-note { margin-top: 10px; max-width: 46rem; }
+@media (max-width: 700px) {
+  .across .searchbox, .across .af { width: 100%; box-sizing: border-box; }
+  .across-cols { display: none; }
+  .across-list button { grid-template-columns: 1fr auto auto; }
+  .across-list .ystrip { grid-column: 1 / -1; }
+}
+.across-by [aria-pressed="true"] { color: var(--ink); font-weight: 600; text-decoration: none; }
