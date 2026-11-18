@@ -271,6 +271,7 @@ async function morePassages(idx, outEl) {
     let ds;
     try { ds = await details(batch); } catch { list.insertAdjacentHTML('beforeend', '<li class="grey small">These passages could not be loaded.</li>'); return; }
     for (const p of ds) {
+      if (p.text.length < 80) continue;   // headings and fragments: real passages first
       const key = p.src + '|' + p.text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().slice(0, 90);
       const had = X.seen.get(key);
       if (had) { had.n++; const el = list.querySelector(`[data-rep="${had.i}"]`); if (el) el.textContent = `the same words in ${had.n} other ${had.n === 1 ? 'edition' : 'editions'} or reports by this source`; continue; }

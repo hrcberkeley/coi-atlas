@@ -386,7 +386,7 @@ async function render() {
   if (state.p) renderPage(app, pageEl); else closePage(pageEl);
   if (state.v === 's') {
     const ready = !app.needsPassages || app.progress.complete;
-    const key = JSON.stringify([state.c, state.y, state.l, state.hd, state.sp, state.dc, qKey, ready]);
+    const key = JSON.stringify([state.c, state.y, state.l, state.hd, state.sp, state.dc, qKey, ready, !!app.lk?.ready, app.T?.total ?? -1]);   // redraw once a phrase is ready and its counts are in
     if (main.dataset.side !== key) {
       main.dataset.side = key;
       if (!ready) { main.innerHTML = `<div class="side"><p class="grey small loading" role="status">${counterLine(app)}</p></div>`; return; }

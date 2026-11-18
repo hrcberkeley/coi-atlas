@@ -621,3 +621,6 @@ body.home .brand .hrc { margin-bottom: 0; }
 .across-by-h { margin-top: 28px; }
 .near-list { margin-top: 18px; }
 .nearp .rep:empty { display: none; }
+.case-btn { max-width: 15rem; }
+.cl-row.bar .searchwrap { flex: 1 1 14rem; }
+.country-pick select { max-width: 20rem; }
