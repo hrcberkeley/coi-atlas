@@ -33,9 +33,41 @@ export async function renderWelcome(main, idx, refreshIndex) {
     <header class="hero">
       <p class="eyebrow">Investigations Lab</p>
       <h1>Country Conditions Atlas</h1>
+      <p class="lede">${n(A.documents)} reports on conditions in ${n(nc)} countries, written by governments, United Nations agencies and research groups, ${yrs}. Search them all, or pick a country.</p>
+      <form class="across" role="search" aria-label="Look across countries">
+        <div class="across-row">
+          <input class="aq searchbox" type="search" placeholder='Search all countries, e.g. "forced recruitment"' aria-label="Words to look for across countries" value="${esc(X.q)}">
+          <span class="grey">or</span>
+          <select class="af" aria-label="A topic to look for across countries"><option value="">a topic…</option></select>
+          <button class="look" type="submit">Look</button>
+        </div>
+        <label class="fbox small"><input type="checkbox" class="ai"${X.wide ? ' checked' : ''}> <span>Include reports that cover 10 or more countries</span></label>
+      </form>
     </header>
     ${A.documents == null ? '<p class="grey small">The collection totals are still being counted.</p>' : ''}
-    <div class="hero-grid">
+    <section class="pick" aria-labelledby="pick-h">
+      <div class="pick-head">
+        <h2 id="pick-h">Pick a country</h2>
+        <input class="findcountry" type="search" placeholder="Find a country" aria-label="Find a country">
+      </div>
+      <figure class="worldmap" hidden>
+        <svg role="img" aria-label="World map. Click a country to open it. Every country is also in the list below."></svg>
+        <figcaption class="readout"><span class="hint">Point at a country to see what the atlas holds. Blue countries open on click; pale ones have no files.</span></figcaption>
+      </figure>
+      <div class="across-out" hidden></div>
+      <details class="az">
+        <summary>All countries, A to Z</summary>
+        <ul class="countries">${list.map(c => `<li data-name="${esc(c.name.toLowerCase())}">${c.slice
+          ? `<button data-slug="${esc(c.slice.slug)}"><span class="nm">${esc(c.name)}</span><span class="tnum">${num(c.docs ?? c.slice.docs)}</span></button>`
+          : `<span class="unbuilt"><span class="nm">${esc(c.name)}</span><span class="tnum">${num(c.docs)}</span><span class="prep">being prepared</span></span>`}</li>`).join('')}</ul>
+      </details>
+      <p class="grey small nomatch" hidden>No country by that name.</p>
+      ${unlisted && nc ? `<p class="grey small">The other ${num(Math.max(0, nc - idx.countries.length))} countries are being prepared.</p>` : ''}
+    </section>
+
+    <section class="collection" aria-labelledby="col-h">
+      <h2 class="h" id="col-h">About the collection</h2>
+      <div class="hero-grid">
       <div class="intro">
         <p>This atlas holds ${n(A.documents)} documents about conditions in ${n(nc)} countries.
         Governments, United Nations agencies and research groups wrote them
@@ -60,35 +92,6 @@ export async function renderWelcome(main, idx, refreshIndex) {
         <div><dt>years</dt><dd>${yrs}</dd></div>
       </dl>
     </div>
-
-    <section class="pick" aria-labelledby="pick-h">
-      <div class="pick-head">
-        <h2 id="pick-h">Pick a country</h2>
-        <input class="findcountry" type="search" placeholder="Find a country" aria-label="Find a country">
-      </div>
-      <form class="across" role="search" aria-label="Look across countries">
-        <p class="across-lead"><b>Or look across countries.</b> See which countries' documents discuss something, and when. Then open one to read the passages.</p>
-        <div class="across-row">
-          <input class="aq searchbox" type="search" placeholder='words, e.g. forced recruitment, "blood feud"' aria-label="Words to look for across countries" value="${esc(A.q)}">
-          <span class="grey">or</span>
-          <select class="af" aria-label="A topic to look for across countries"><option value="">a topic…</option></select>
-          <button class="look" type="submit">Look</button>
-        </div>
-        <label class="fbox small"><input type="checkbox" class="ai"${A.wide ? ' checked' : ''}> <span>Include reports that cover 10 or more countries</span></label>
-      </form>
-      <figure class="worldmap" hidden>
-        <svg role="img" aria-label="World map. Click a country to open it. Every country is also in the list below."></svg>
-        <figcaption class="readout"><span class="hint">Point at a country to see what the atlas holds. Blue countries open on click; pale ones have no files.</span></figcaption>
-      </figure>
-      <div class="across-out" hidden></div>
-      <details class="az">
-        <summary>All countries, A to Z</summary>
-        <ul class="countries">${list.map(c => `<li data-name="${esc(c.name.toLowerCase())}">${c.slice
-          ? `<button data-slug="${esc(c.slice.slug)}"><span class="nm">${esc(c.name)}</span><span class="tnum">${num(c.docs ?? c.slice.docs)}</span></button>`
-          : `<span class="unbuilt"><span class="nm">${esc(c.name)}</span><span class="tnum">${num(c.docs)}</span><span class="prep">being prepared</span></span>`}</li>`).join('')}</ul>
-      </details>
-      <p class="grey small nomatch" hidden>No country by that name.</p>
-      ${unlisted && nc ? `<p class="grey small">The other ${num(Math.max(0, nc - idx.countries.length))} countries are being prepared.</p>` : ''}
     </section>
 
     <div class="two">
@@ -159,68 +162,70 @@ async function drawMap(main, idx) {
   fig.hidden = false;
   const out = fig.querySelector('.readout'), hint = out.innerHTML;
   const show = c => {
-    const r = c && A.res?.get(c.slug);
-    out.innerHTML = !c ? (A.res ? A.hint : hint) : A.res
-      ? `<b>${esc(c.name)}</b> · ${r ? `${num(r.n)} of its ${num(c.docs)} documents ${A.what} (${fmtShare(r.n, c.docs)})` : `no documents ${A.what}`}`
+    const r = c && X.res?.get(c.slug);
+    out.innerHTML = !c ? (X.res ? X.hint : hint) : X.res
+      ? `<b>${esc(c.name)}</b> · ${r ? `${num(r.n)} of its ${num(c.docs)} documents ${X.what} (${fmtShare(r.n, c.docs)})` : `no documents ${X.what}`}`
       : `<b>${esc(c.name)}</b> · ${num(c.docs)} documents · ${num(c.sources)} sources · ${esc(c.first)}–${esc(c.last)}`;
   };
-  A.show = show;
+  X.show = show;
   svg.addEventListener('mouseover', e => { const iso = e.target.dataset?.iso; show(byIso.get(iso)); svg.querySelectorAll(`[data-iso="${iso}"]`).forEach(el => el.classList.add('hov')); });
   svg.addEventListener('mouseout', e => { show(null); svg.querySelectorAll('.hov').forEach(el => el.classList.remove('hov')); });
   svg.addEventListener('click', e => { const s = e.target.dataset?.slug; if (s) open(s); });
 }
 
 // Look across countries (across.js). The state lives here, not in the address, so typing never redraws the page.
-const A = { q: '', fam: '', wide: false, by: 'n', res: null, what: '', hint: '' };
-const open = slug => set(A.res ? (A.q ? { c: slug, q: A.q } : { c: slug, fm: A.fam, mc: A.wide ? '0' : '' }) : { c: slug });
+const X = { q: '', fam: '', wide: false, by: 'n', res: null, what: '', hint: '' };
+// The country page's words come back to the search across countries ("◂ All countries").
+export const carry = q => { if (q) { X.q = q; X.fam = ''; } };
+const open = slug => set(X.res ? (X.q ? { c: slug, q: X.q } : { c: slug, fm: X.fam, mc: X.wide ? '0' : '' }) : { c: slug });
 
 async function wireAcross(main, idx) {
   const form = main.querySelector('.across'), outEl = main.querySelector('.across-out'), sel = form.querySelector('.af'), box = form.querySelector('.aq');
   const byslug = new Map(idx.countries.map(c => [c.slug, c]));
   families().then(F => {
-    sel.insertAdjacentHTML('beforeend', F.families.slice().sort((a, b) => a.name.localeCompare(b.name)).map(f => `<option value="${f.id}"${String(f.id) === A.fam ? ' selected' : ''}>${esc(f.name)}</option>`).join(''));
+    sel.insertAdjacentHTML('beforeend', F.families.slice().sort((a, b) => a.name.localeCompare(b.name)).map(f => `<option value="${f.id}"${String(f.id) === X.fam ? ' selected' : ''}>${esc(f.name)}</option>`).join(''));
   }).catch(() => { sel.disabled = true; });
   box.addEventListener('input', () => { if (box.value) sel.value = ''; });
   sel.addEventListener('change', () => { if (sel.value) { box.value = ''; run(); } });
-  form.querySelector('.ai').addEventListener('change', e => { A.wide = e.target.checked; if (A.res) run(false); });
+  form.querySelector('.ai').addEventListener('change', e => { X.wide = e.target.checked; if (X.res) run(false); });
   form.addEventListener('submit', e => { e.preventDefault(); run(); });
 
   async function run(fromInputs = true) {
-    if (fromInputs) { A.q = box.value.trim(); A.fam = A.q ? '' : sel.value; }
-    if (!A.q && !A.fam) return clear();
+    if (fromInputs) { X.q = box.value.trim(); X.fam = X.q ? '' : sel.value; }
+    if (!X.q && !X.fam) return clear();
     outEl.hidden = false; outEl.innerHTML = '<p class="grey small" role="status">Looking across countries…</p>';
     let r;
-    try { r = await look({ q: A.q, fam: A.fam, wide: A.wide }); }
+    try { r = await look({ q: X.q, fam: X.fam, wide: X.wide }); }
     catch { outEl.innerHTML = '<p class="grey small">The cross-country index could not be loaded. Open a country to search it.</p>'; return; }
-    const name = A.q ? (/^".*"$/.test(A.q) ? esc(A.q) : `“${esc(A.q)}”`) : esc((await families()).families.find(f => String(f.id) === A.fam)?.name || '');
-    A.what = A.q ? 'hold these words' : 'have passages on this topic';
-    A.res = new Map(r.rows.map(x => [x.slug, x]));
+    const name = X.q ? (/^".*"$/.test(X.q) ? esc(X.q) : `“${esc(X.q)}”`) : esc((await families()).families.find(f => String(f.id) === X.fam)?.name || '');
+    X.what = X.q ? 'hold these words' : 'have passages on this topic';
+    X.res = new Map(r.rows.map(x => [x.slug, x]));
     // Ranked by documents, or by share of the country's documents (countries with under 50 documents last: one of one is not a pattern).
     const share = x => x.n / byslug.get(x.slug).docs, small = x => byslug.get(x.slug).docs < 50;
     const rows = r.rows.filter(x => byslug.has(x.slug)), total = rows.reduce((a, x) => a + x.n, 0);
-    if (A.by === 'share') rows.sort((a, b) => small(a) - small(b) || share(b) - share(a) || b.n - a.n);
-    A.hint = `${num(rows.length)} countries · darker means ${A.by === 'share' ? 'a larger share of its documents' : 'more documents'}. Point at a country for its count; click to open it.`;
+    if (X.by === 'share') rows.sort((a, b) => small(a) - small(b) || share(b) - share(a) || b.n - a.n);
+    X.hint = `${num(rows.length)} countries · darker means ${X.by === 'share' ? 'a larger share of its documents' : 'more documents'}. Point at a country for its count; click to open it.`;
     shade(main, rows);
-    A.show?.(null);
+    X.show?.(null);
     const [lo, hi] = yearsSpan(rows), max = Math.max(1, ...rows.flatMap(x => Object.values(x.years)));
     const row = x => { const c = byslug.get(x.slug); return `<li><button data-open="${esc(x.slug)}"><span class="nm">${esc(c.name)}</span><span class="n tnum">${num(x.n)}</span><span class="sh tnum grey">${fmtShare(x.n, c.docs)}</span>${strip(x.years, lo, hi, max)}</button></li>`; };
-    outEl.innerHTML = `<div class="across-head"><p><b>${name}</b>: ${num(total)} documents in ${num(rows.length)} countries${A.wide ? '' : ', not counting reports that cover 10 or more countries'}.</p><span class="across-by small" role="group" aria-label="Rank countries by"><span class="grey">Rank by</span> <button class="linkish" data-by="n" aria-pressed="${A.by === 'n'}">documents</button> · <button class="linkish" data-by="share" aria-pressed="${A.by === 'share'}">share of its documents</button> · <button class="linkish" data-aclear>Back to all countries</button></span></div>
+    outEl.innerHTML = `<div class="across-head"><p><b>${name}</b>: ${num(total)} documents in ${num(rows.length)} countries${X.wide ? '' : ', not counting reports that cover 10 or more countries'}.</p><span class="across-by small" role="group" aria-label="Rank countries by"><span class="grey">Rank by</span> <button class="linkish" data-by="n" aria-pressed="${X.by === 'n'}">documents</button> · <button class="linkish" data-by="share" aria-pressed="${X.by === 'share'}">share of its documents</button> · <button class="linkish" data-aclear>Back to all countries</button></span></div>
       ${rows.length ? `<div class="across-cols grey small"><span>Country</span><span>Documents</span><span>Of its documents</span><span>By year published, ${lo}–${hi}</span></div>
       <ol class="across-list">${rows.slice(0, 15).map(row).join('')}</ol>
       ${rows.length > 15 ? `<details class="across-more"><summary>All ${num(rows.length)} countries</summary><ol class="across-list" start="16">${rows.slice(15).map(row).join('')}</ol></details>` : ''}`
       : '<p class="grey">No country\'s documents hold this. Check the spelling, or try a word in the language of the reports.</p>'}
-      <p class="grey small across-note">${A.q ? 'Counts are documents whose text, or its machine translation, holds all your words (or all the words of one comma group). Exact phrases and word endings (activist*) are checked when you open a country, so its numbers can be lower.' : 'Counts are documents with at least one passage filed under this topic, by a heading or by its wording; reference lists are left out.'} Large collections have more of everything: the share of a country's documents is often the fairer comparison.${r.notes.length ? ' Not looked up here: ' + r.notes.map(esc).join('; ') + '.' : ''}</p>`;
+      <p class="grey small across-note">${X.q ? `Counts are documents whose text, or its machine translation, holds your words: a phrase in quotes as words next to each other, other words anywhere in the document. ${/"/.test(X.q) || !/\s/.test(X.q.trim()) ? '' : '<b>For an exact phrase, put it in quotes.</b> '}Opening a country gives the passages; its count looks for the words within one passage, so it can be lower.` : 'Counts are documents with at least one passage filed under this topic, by a heading or by its wording; reference lists are left out.'} Large collections have more of everything: the share of a country's documents is often the fairer comparison.${r.notes.length ? ' Not looked up here: ' + r.notes.map(esc).join('; ') + '.' : ''}</p>`;
     outEl.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => open(b.dataset.open)));
     outEl.querySelector('[data-aclear]').addEventListener('click', clear);
-    outEl.querySelectorAll('[data-by]').forEach(b => b.addEventListener('click', () => { A.by = b.dataset.by; run(false); }));
+    outEl.querySelectorAll('[data-by]').forEach(b => b.addEventListener('click', () => { X.by = b.dataset.by; run(false); }));
     main.querySelector('.az').hidden = true;
   }
   function clear() {
-    A.res = null; A.q = A.fam = ''; box.value = ''; sel.value = '';
+    X.res = null; X.q = X.fam = ''; box.value = ''; sel.value = '';
     outEl.hidden = true; outEl.innerHTML = ''; main.querySelector('.az').hidden = false;
-    shade(main, null); A.show?.(null);
+    shade(main, null); X.show?.(null);
   }
-  if (A.q || A.fam) run(false);     // back from a country: the same look again
+  if (X.q || X.fam) run(false);     // back from a country: the same look again
 }
 
 // Five steps of one ink by rank among the countries with any; countries with none stay pale.

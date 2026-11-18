@@ -23,6 +23,28 @@ async function postings(word) {
   const sh = await shard(fnv(word) % 4096);
   return sh[word] ? decode(sh[word]) : [];
 }
+// The pair index (8192 shards): "word word" for two words with only white space between them.
+const pshards = new Map();
+const pshard = n => { const k = String(n).padStart(4, '0'); if (!pshards.has(k)) pshards.set(k, json(`${DATA}/across/p/${k}.json`).catch(e => { pshards.delete(k); throw e; })); return pshards.get(k); };
+async function pairPostings(pair) {
+  const sh = await pshard(fnv(pair) % 8192);
+  return sh[pair] ? decode(sh[pair]) : [];
+}
+const WD = /[\p{L}\p{N}_]+/gu;
+// What a token needs: words (anywhere in the document) and, for a quoted phrase, the pairs of words that stand next to each other.
+function needs(t) {
+  const body = t.label.replace(/^"|"$/g, '').replace(/\*$/, '');
+  if (!t.label.startsWith('"')) return { words: body.match(WD) || [], pairs: [] };
+  const parts = body.split(/\s+/).filter(Boolean), words = [], pairs = [];
+  parts.forEach((p, i) => {
+    const ws = p.match(WD) || [];
+    words.push(...ws);
+    const next = parts[i + 1]?.match(WD);
+    // "blood feud": the pair is exact. Inside "al-shabaab" the words are joined by a hyphen, not white space: words only.
+    if (ws.length && next?.length && /[\p{L}\p{N}_]$/u.test(p) && /^[\p{L}\p{N}_]/u.test(parts[i + 1])) pairs.push(ws[ws.length - 1] + ' ' + next[0]);
+  });
+  return { words, pairs };
+}
 const and = (a, b) => { const s = new Set(b); return a.filter(x => s.has(x)); };
 
 // Words → document numbers. A token such as "al-shabaab" or a quoted phrase needs all its words (document level).
@@ -32,8 +54,10 @@ async function wordDocs(raw) {
     let docs = null;
     for (const t of g) {
       if (t.label.endsWith('*')) notes.push(`${t.label} (word endings are checked inside a country)`);
-      const words = t.lit && t.label.match(/[\p{L}\p{N}_]+/gu) || [];
-      for (const w of words) { const p = await postings(w); docs = docs ? and(docs, p) : p; if (!docs.length) break; }
+      const { words, pairs } = needs(t);
+      const inPair = new Set(pairs.flatMap(p => p.split(' ')));   // a pair implies its two words
+      const lists = [...pairs.map(pairPostings), ...words.filter(w => !inPair.has(w)).map(postings)];
+      for (const p of await Promise.all(lists)) { docs = docs ? and(docs, p) : p; if (!docs.length) break; }
       if (docs && !docs.length) break;
     }
     for (const d of docs || []) out.add(d);

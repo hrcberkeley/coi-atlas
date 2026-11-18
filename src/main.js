@@ -3,7 +3,7 @@ import * as data from './data.js';
 import { fromDocs, docsSuffice, blank, pubYear, parseWords, markRe, docFilter, TYPES, typeIndex, kindOf, WIDE, singleOn } from './count.js';
 import { renderLandscape, renderWhere, counterLine, openRows } from './grid.js';
 import { renderSide, selection } from './side.js';
-import { renderWelcome } from './welcome.js';
+import { renderWelcome, carry } from './welcome.js';
 import { renderPage, closePage, stepPage, pinCurrent, hasSelection, parseP } from './page.js';
 import { initCasefile, toggle, cases, current, switchCase, saveLine } from './casefile.js';
 
@@ -89,27 +89,39 @@ function caseline() {
   const parts = wordCounts();
   const draft = app.draft ?? '';
   const descDocs = state.ds && app.S ? docFilter(app.S.docs, { ds: state.ds, types: [] }).reduce((a, b) => a + b, 0) : 0;
+  document.body.classList.toggle('home', !state.c);
+  // Home: the header holds only the name and two buttons; the search across countries is on the page itself.
+  if (!state.c) { $('caseline').innerHTML = ''; return; }
+  const caseSet = !!(cf || state.w || state.l || state.dc);
+  const summary = cf ? `Case: ${esc(cf.name)}` : caseSet ? [state.w && esc(place), state.l && esc(fmtDate(state.l)), state.dc && 'decided in ' + esc(state.dc)].filter(Boolean).join(' · ') : 'Case details';
   $('caseline').innerHTML = `
-    <div class="cl-row">
-      <label class="chip case"><span class="lab">Case</span><select data-case aria-label="Case in use">
-        <option value=""${cf ? '' : ' selected'}>no case open</option>
-        ${cases().map(x => `<option value="${x.id}"${cf === x ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}
-        <option value="+">New case…</option></select></label>
-      <label class="chip req"><span class="lab">Transferred to</span>
-        <select data-k="c" class="${state.c ? 'you' : ''}"><option value="">choose the destination</option>${countries.map(x => `<option value="${x.slug}"${x.slug === state.c ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>
-      <span class="chip"><span class="lab">where</span>${state.w ? `<button class="val you" data-goto-where>${esc(place)}</button>${clear('w', 'where')}` : `<button class="val unset" data-goto-where ${c ? '' : 'disabled'}>any place</button>`}</span>
-      <label class="chip"><span class="lab">key date</span><input data-k="l" class="${state.l ? 'you' : ''}" size="9" placeholder="Mar 2019" title="e.g. when your client left, or the planned transfer date" value="${esc(state.l ? fmtDate(state.l) : '')}" aria-label="Key date: a year or month, e.g. when your client left, or the planned transfer date">${state.l ? clear('l', 'key date') : ''}</label>
-      <label class="chip"><span class="lab">decided in</span><select data-k="dc" class="${state.dc ? 'you' : ''}"><option value="">not set</option>${dcs.map(x => `<option${x === state.dc ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>${state.dc ? clear('dc', 'deciding country') : ''}</label>
-      ${state.r ? `<span class="chip"><span class="lab">years</span><span class="val you">${state.r.replace('-', '–')}</span>${clear('r', 'year range')}</span>` : ''}
-      ${state.ck === 'm' ? `<span class="chip"><span class="lab">counting by</span><span class="val">year the text mentions</span>${clear('ck', 'year the text mentions')}</span>` : ''}
+    <div class="cl-row bar">
+      <a class="home-link" href="#" data-home title="Back to the search across all countries">◂ All countries</a>
+      <label class="country-pick"><span class="sr-only">Country</span><select data-k="c" aria-label="Country the person is transferred to">${countries.map(x => `<option value="${x.slug}"${x.slug === state.c ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}</select></label>
+      <span class="searchwrap">
+        <input class="searchbox${draft ? ' you' : ''}" data-k="search" value="${esc(draft)}" placeholder="${esc(MODES[app.mode].ph)}" aria-label="Search ${esc(c?.name || '')}: ${MODES[app.mode].label}. Press / to come here." aria-describedby="search-help">
+        <select class="modesel" data-modesel aria-label="How to match what you type">${Object.entries(MODES).map(([k, m]) => `<option value="${k}"${app.mode === k ? ' selected' : ''}>${m.label}</option>`).join('')}</select>
+        <button class="help-q" type="button" aria-label="How searching works" title="${esc(MODES[app.mode].help)}" data-helpq>?</button>
+      </span>
+      <span class="casewrap">
+        <button class="case-btn${caseSet ? ' you' : ''}" data-casebtn aria-expanded="${!!app.caseOpen}" aria-controls="case-panel">${summary} <span aria-hidden="true">▾</span></button>
+        <div class="case-panel" id="case-panel" role="group" aria-label="The case"${app.caseOpen ? '' : ' hidden'}>
+          <p class="grey small">Saved with the case and used in your evidence. The country is the one above.</p>
+          <label class="chip case"><span class="lab">Case</span><select data-case aria-label="Case in use">
+            <option value=""${cf ? '' : ' selected'}>no case open</option>
+            ${cases().map(x => `<option value="${x.id}"${cf === x ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}
+            <option value="+">New case…</option></select></label>
+          <span class="chip"><span class="lab">where</span>${state.w ? `<button class="val you" data-goto-where>${esc(place)}</button>${clear('w', 'where')}` : `<button class="val unset" data-goto-where ${c ? '' : 'disabled'}>any place</button>`}</span>
+          <label class="chip"><span class="lab">key date</span><input data-k="l" class="${state.l ? 'you' : ''}" size="9" placeholder="Mar 2019" title="e.g. when your client left, or the planned transfer date" value="${esc(state.l ? fmtDate(state.l) : '')}" aria-label="Key date: a year or month, e.g. when your client left, or the planned transfer date">${state.l ? clear('l', 'key date') : ''}</label>
+          <label class="chip"><span class="lab">decided in</span><select data-k="dc" class="${state.dc ? 'you' : ''}"><option value="">not set</option>${dcs.map(x => `<option${x === state.dc ? ' selected' : ''}>${esc(x)}</option>`).join('')}</select>${state.dc ? clear('dc', 'deciding country') : ''}</label>
+          <button class="linkish small" data-caseclose>Done</button>
+        </div>
+      </span>
     </div>
-    <div class="cl-row what">
-      <span class="lab what-lab">Search</span>
-      <input class="searchbox${draft ? ' you' : ''}" data-k="search" value="${esc(draft)}" placeholder="${esc(MODES[app.mode].ph)}" aria-label="Search: ${MODES[app.mode].label}. Press / to come here." aria-describedby="search-help">
-      <span class="modes" role="radiogroup" aria-label="How to match what you type">${Object.entries(MODES).map(([k, m]) => `<button role="radio" aria-checked="${app.mode === k}" data-mode="${k}">${m.label}</button>`).join('')}</span>
-    </div>
-    <p class="search-help grey small" id="search-help">${MODES[app.mode].help}</p>
-    ${state.q || state.lk || state.ds || (app.S?.hasTopics && (state.tp || state.fm)) ? `<div class="cl-row chips">
+    <p class="search-help sr-only" id="search-help">${MODES[app.mode].help}</p>
+    ${state.q || state.lk || state.ds || state.r || state.ck === 'm' || (app.S?.hasTopics && (state.tp || state.fm)) ? `<div class="cl-row chips">
+      ${state.r ? `<span class="schip"><span class="edit">years: <b>${state.r.replace('-', '–')}</b></span>${clear('r', 'year range')}</span>` : ''}
+      ${state.ck === 'm' ? `<span class="schip"><span class="edit">counting by the year the text mentions</span>${clear('ck', 'year the text mentions')}</span>` : ''}
       ${state.q ? `<span class="schip"><button class="edit" data-edit="q" title="Edit">exact words: <b>${esc(state.q)}</b> <span class="cnt" data-cnt="q">${parts}</span></button>${clear('q', 'exact words')}</span>` : ''}
       ${state.lk ? `<span class="schip"><button class="edit" data-edit="lk" title="Edit">similar wording: <b>“${esc(state.lk)}”</b></button><select data-k="ln" aria-label="How many closest passages">${LN.map(n => `<option value="${n}"${(state.ln || '300') === n ? ' selected' : ''}>closest ${num(+n)}</option>`).join('')}</select>${clear('lk', 'similar wording')}</span>` : ''}
       ${state.fm && app.S?.hasTopics ? `<span class="schip"><button class="edit" data-edit-topic title="Show in the Topics tab">family: <b>${esc(app.S?.famById.get(state.fm)?.name || (state.fm === '29' ? 'Other questions' : state.fm))}</b></button>${clear('fm', 'family')}</span>` : ''}
@@ -144,7 +156,14 @@ function caseline() {
     app.draft = '';
     set({ [app.mode]: v });
   };
-  cl.querySelectorAll('[data-mode]').forEach(b => b.onclick = () => { app.mode = b.dataset.mode; caseline(); cl.querySelector('[data-k="search"]').focus(); });
+  cl.querySelector('[data-modesel]').onchange = e => { app.mode = e.target.value; caseline(); cl.querySelector('[data-k="search"]')?.focus(); };
+  cl.querySelector('[data-helpq]').onclick = () => { live.textContent = MODES[app.mode].help; alertHelp(cl); };
+  cl.querySelector('[data-home]').onclick = e => { e.preventDefault(); carry(state.q); set({ c: '', w: '', s: '', y: '', p: '', pg: '', x: '', r: '', v: '' }); };
+  const panel = cl.querySelector('.case-panel'), cbtn = cl.querySelector('[data-casebtn]');
+  const showCase = on => { app.caseOpen = on; panel.hidden = !on; cbtn.setAttribute('aria-expanded', on); if (on) panel.querySelector('select, input, button')?.focus(); };
+  cbtn.onclick = () => showCase(!app.caseOpen);
+  cl.querySelector('[data-caseclose]').onclick = () => { showCase(false); cbtn.focus(); };
+  panel.onkeydown = e => { if (e.key === 'Escape') { showCase(false); cbtn.focus(); } };
   cl.querySelector('[data-compare-on]')?.addEventListener('click', () => set({ v: 's', sp: '' }));
   cl.querySelector('[data-mc]')?.addEventListener('change', e => set({ mc: e.target.checked ? '0' : '1' }));
   cl.querySelector('[data-hw]')?.addEventListener('change', e => set({ hw: e.target.checked ? '1' : '' }));
@@ -417,3 +436,19 @@ addEventListener('keydown', e => {
 
 initCasefile(live, { line: lineNow, header, changed: () => { caseline(); if (app.S && !state.v) renderLandscape(app, main); }, open: id => { restoreLine(switchCase(id)); } });
 render();
+
+// The "?" beside the search: the help line for the current way of matching, shown under the bar until the next click.
+function alertHelp(cl) {
+  let p = cl.querySelector('.help-pop');
+  if (p) { p.remove(); return; }
+  p = document.createElement('p'); p.className = 'help-pop small'; p.textContent = MODES[app.mode].help;
+  cl.querySelector('.bar').after(p);
+  setTimeout(() => document.addEventListener('click', () => p.remove(), { once: true }), 0);
+}
+// Clicking outside the case panel closes it.
+document.addEventListener('click', e => {
+  if (!app.caseOpen || e.target.closest('.casewrap')) return;
+  app.caseOpen = false;
+  const p = document.querySelector('.case-panel'); if (p) p.hidden = true;
+  document.querySelector('[data-casebtn]')?.setAttribute('aria-expanded', 'false');
+});
