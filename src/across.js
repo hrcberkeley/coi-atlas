@@ -99,3 +99,63 @@ export const yearsSpan = rows => {
 };
 
 export const fmtShare = (n, of) => (of ? (n / of >= 0.995 ? 'all' : n / of < 0.01 ? 'under 1%' : `${Math.round(100 * n / of)}%`) : '');
+
+// ---- Similar wording across countries: an IVF-PQ index (build/across_vec.py) ----
+// 4096 lists; a phrase opens the NPROBE lists whose centroids are closest, then scores their passages from 96-byte codes.
+const NL = 4096, M = 96, DS = 384 / M, NPROBE = 32;
+const bin = u => fetch(u).then(r => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(u + ': ' + r.status))));
+let vqP, pqP;
+const vq = () => (vqP ||= bin(`${DATA}/across/vq.bin`).then(b => new Int8Array(b)).catch(e => { vqP = null; throw e; }));
+const pq = () => (pqP ||= bin(`${DATA}/across/pq.bin`).then(b => new Float32Array(b)).catch(e => { pqP = null; throw e; }));
+const vlists = new Map();
+function vlist(L) {
+  const key = String(L).padStart(4, '0');
+  if (!vlists.has(key)) vlists.set(key, bin(`${DATA}/across/v/${key}.bin`).then(b => {
+    const n = new DataView(b).getUint32(0, true);
+    return { n, doc: new Int32Array(b, 4, n), k: new Uint16Array(b, 4 + 4 * n, n), codes: new Uint8Array(b, 4 + 6 * n, n * M) };
+  }).catch(e => { vlists.delete(key); throw e; }));
+  return vlists.get(key);
+}
+
+// The N passages closest to a phrase vector (normalised, 384 numbers): [{doc, k, s}], best first.
+export async function nearest(q, N = 2000) {
+  const [C, B] = await Promise.all([vq(), pq()]);
+  const cs = new Float32Array(NL);
+  for (let L = 0; L < NL; L++) { let s = 0; const o = L * 384; for (let j = 0; j < 384; j++) s += C[o + j] * q[j]; cs[L] = s / 127; }
+  const probe = [...cs.keys()].sort((a, b) => cs[b] - cs[a]).slice(0, NPROBE);
+  const lut = new Float32Array(M * 256);
+  for (let m = 0; m < M; m++) for (let j = 0; j < 256; j++) { let s = 0; const o = (m * 256 + j) * DS; for (let d = 0; d < DS; d++) s += q[m * DS + d] * B[o + d]; lut[m * 256 + j] = s; }
+  const out = [];
+  for (const [L, V] of (await Promise.all(probe.map(L => vlist(L).then(V => [L, V]))))) {
+    for (let i = 0; i < V.n; i++) {
+      let s = cs[L]; const o = i * M;
+      for (let m = 0; m < M; m++) s += lut[m * 256 + V.codes[o + m]];
+      out.push({ doc: V.doc[i], k: V.k[i], s });
+    }
+  }
+  return out.sort((a, b) => b.s - a.s).slice(0, N);
+}
+
+// Per-country documents among the closest passages, as look() gives for words.
+export async function lookNear(q, wide, N = 2000) {
+  const T = await docsT(), top = await nearest(q, N), by = new Map(), seen = new Set();
+  for (const p of top) {
+    if (T.w[p.doc] && !wide) continue;
+    if (seen.has(p.doc)) continue; seen.add(p.doc);
+    for (const c of T.c[p.doc]) { const slug = T.slugs[c], r = by.get(slug) || by.set(slug, { slug, n: 0, years: {} }).get(slug); r.n++; r.years[T.y[p.doc]] = (r.years[T.y[p.doc]] || 0) + 1; }
+  }
+  return { rows: [...by.values()].sort((a, b) => b.n - a.n || a.slug.localeCompare(b.slug)), top: top.filter(p => wide || !T.w[p.doc]), docs: seen.size, notes: [] };
+}
+
+// Text and document facts for passages to show: snippets in 16384 shards by "doc.k", documents in 512 shards.
+const sn = new Map(), dmP = new Map();
+const snShard = i => { const k = `${String(i >> 8).padStart(2, '0')}/${String(i).padStart(4, '0')}`; if (!sn.has(k)) sn.set(k, json(`${DATA}/across/s/${k}.json`).catch(e => { sn.delete(k); throw e; })); return sn.get(k); };
+const dmShard = i => { if (!dmP.has(i)) dmP.set(i, json(`${DATA}/across/dm/${String(i).padStart(3, '0')}.json`).catch(e => { dmP.delete(i); throw e; })); return dmP.get(i); };
+export async function details(ps) {
+  const T = await docsT();
+  return Promise.all(ps.map(async p => {
+    const key = `${p.doc}.${p.k}`;
+    const [s, d] = await Promise.all([snShard(fnv(key) % 16384).then(x => x[key]), dmShard(p.doc % 512).then(x => x[p.doc])]);
+    return { ...p, pg: s?.[0], text: s?.[1] || '', mt: !!s?.[2], id: d?.[0], src: d?.[1], date: d?.[2], title: d?.[3], lang: d?.[4], slugs: T.c[p.doc].map(c => T.slugs[c]), wide: !!T.w[p.doc] };
+  }));
+}

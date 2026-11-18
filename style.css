@@ -606,3 +606,18 @@ body.home .top-actions { margin-left: auto; }
 body.home .brand .lab, body.home .brand .nm { display: none; }   /* the page title says it, larger */
 body.home .brand .hrc { margin-bottom: 0; }
 .hero .across .af { max-width: 20rem; }
+
+.hero .searchwrap.big { flex: 0 1 36rem; max-width: 36rem; border-radius: 5px; }
+.hero .searchwrap.big .searchbox { width: auto; border: 0; padding: 10px 14px; font-size: 17px; }
+.hero .searchwrap.big .modesel { font-size: 13.5px; padding: 10px 8px; }
+.near-list { margin-top: 26px; }
+.nearp { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; max-width: 52rem; }
+.nearp li { border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+.nearp .meta { margin: 0 0 4px; font-size: 13.5px; }
+.nearp blockquote { margin: 0; font: 400 16px/1.55 var(--serif); color: #2A2F36; }
+.nearp .foot { margin: 6px 0 0; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.nearp .otitle { flex: 1 1 18rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 700px) { .hero .searchwrap.big { flex-basis: 100%; } }
+.across-by-h { margin-top: 28px; }
+.near-list { margin-top: 18px; }
+.nearp .rep:empty { display: none; }

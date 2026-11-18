@@ -1,7 +1,7 @@
 // The welcome page (DESIGN §4.0). Text as written in the design; every number from data/about.json.
 import { set, esc, num } from './state.js';
-import { DATA } from './data.js';
-import { look, families, strip, yearsSpan, fmtShare } from './across.js';
+import { DATA, embed, embedListeners } from './data.js';
+import { look, lookNear, details, families, strip, yearsSpan, fmtShare } from './across.js';
 
 let aboutP = null;
 const about = () => (aboutP ||= fetch(`${DATA}/about.json`).then(r => (r.ok ? r.json() : null)).catch(() => null));
@@ -36,7 +36,10 @@ export async function renderWelcome(main, idx, refreshIndex) {
       <p class="lede">${n(A.documents)} reports on conditions in ${n(nc)} countries, written by governments, United Nations agencies and research groups, ${yrs}. Search them all, or pick a country.</p>
       <form class="across" role="search" aria-label="Look across countries">
         <div class="across-row">
-          <input class="aq searchbox" type="search" placeholder='Search all countries, e.g. "forced recruitment"' aria-label="Words to look for across countries" value="${esc(X.q)}">
+          <span class="searchwrap big">
+            <input class="aq searchbox" type="search" placeholder='${X.mode === 'lk' ? 'Search all countries by wording, e.g. police demanded bribes at checkpoints' : 'Search all countries, e.g. &quot;forced recruitment&quot;'}' aria-label="Search all countries" value="${esc(X.q)}">
+            <select class="amode modesel" aria-label="How to match what you type"><option value="q"${X.mode === 'lk' ? '' : ' selected'}>Exact words</option><option value="lk"${X.mode === 'lk' ? ' selected' : ''}>Similar wording</option></select>
+          </span>
           <span class="grey">or</span>
           <select class="af" aria-label="A topic to look for across countries"><option value="">a topic…</option></select>
           <button class="look" type="submit">Look</button>
@@ -174,7 +177,7 @@ async function drawMap(main, idx) {
 }
 
 // Look across countries (across.js). The state lives here, not in the address, so typing never redraws the page.
-const X = { q: '', fam: '', wide: false, by: 'n', res: null, what: '', hint: '' };
+const X = { q: '', mode: 'q', fam: '', wide: false, by: 'n', res: null, what: '', hint: '', near: null, shown: 10 };
 // The country page's words come back to the search across countries ("◂ All countries").
 export const carry = q => { if (q) { X.q = q; X.fam = ''; } };
 const open = slug => set(X.res ? (X.q ? { c: slug, q: X.q } : { c: slug, fm: X.fam, mc: X.wide ? '0' : '' }) : { c: slug });
@@ -189,16 +192,33 @@ async function wireAcross(main, idx) {
   sel.addEventListener('change', () => { if (sel.value) { box.value = ''; run(); } });
   form.querySelector('.ai').addEventListener('change', e => { X.wide = e.target.checked; if (X.res) run(false); });
   form.addEventListener('submit', e => { e.preventDefault(); run(); });
+  const msel = form.querySelector('.amode');
+  msel.addEventListener('change', () => {
+    X.mode = msel.value;
+    box.placeholder = X.mode === 'lk' ? 'Search all countries by wording, e.g. police demanded bribes at checkpoints' : 'Search all countries, e.g. "forced recruitment"';
+    if (box.value.trim()) run(); else box.focus();
+  });
 
   async function run(fromInputs = true) {
     if (fromInputs) { X.q = box.value.trim(); X.fam = X.q ? '' : sel.value; }
     if (!X.q && !X.fam) return clear();
     outEl.hidden = false; outEl.innerHTML = '<p class="grey small" role="status">Looking across countries…</p>';
     let r;
-    try { r = await look({ q: X.q, fam: X.fam, wide: X.wide }); }
+    const lk = X.q && X.mode === 'lk';
+    if (lk) {
+      embedListeners.progress = m => { if (m.total) outEl.innerHTML = `<p class="grey small" role="status">Preparing the wording model in your browser, once per visit (about 135 MB): ${Math.round(100 * m.loaded / m.total)}%…</p>`; };
+      try {
+        const e = await embed(X.q);
+        if (!e.vec) throw new Error(e.message || 'no vector');
+        outEl.innerHTML = '<p class="grey small" role="status">Finding the closest wording in every country…</p>';
+        r = await lookNear(e.vec, X.wide);
+      } catch (err) { outEl.innerHTML = `<p class="grey small">Similar wording could not run here (${esc(err.message || err)}). Try exact words, or open a country.</p>`; return; }
+      finally { embedListeners.progress = null; }
+    }
+    else try { r = await look({ q: X.q, fam: X.fam, wide: X.wide }); }
     catch { outEl.innerHTML = '<p class="grey small">The cross-country index could not be loaded. Open a country to search it.</p>'; return; }
     const name = X.q ? (/^".*"$/.test(X.q) ? esc(X.q) : `“${esc(X.q)}”`) : esc((await families()).families.find(f => String(f.id) === X.fam)?.name || '');
-    X.what = X.q ? 'hold these words' : 'have passages on this topic';
+    X.what = lk ? 'have passages among the closest' : X.q ? 'hold these words' : 'have passages on this topic';
     X.res = new Map(r.rows.map(x => [x.slug, x]));
     // Ranked by documents, or by share of the country's documents (countries with under 50 documents last: one of one is not a pattern).
     const share = x => x.n / byslug.get(x.slug).docs, small = x => byslug.get(x.slug).docs < 50;
@@ -209,19 +229,21 @@ async function wireAcross(main, idx) {
     X.show?.(null);
     const [lo, hi] = yearsSpan(rows), max = Math.max(1, ...rows.flatMap(x => Object.values(x.years)));
     const row = x => { const c = byslug.get(x.slug); return `<li><button data-open="${esc(x.slug)}"><span class="nm">${esc(c.name)}</span><span class="n tnum">${num(x.n)}</span><span class="sh tnum grey">${fmtShare(x.n, c.docs)}</span>${strip(x.years, lo, hi, max)}</button></li>`; };
-    outEl.innerHTML = `<div class="across-head"><p><b>${name}</b>: ${num(total)} documents in ${num(rows.length)} countries${X.wide ? '' : ', not counting reports that cover 10 or more countries'}.</p><span class="across-by small" role="group" aria-label="Rank countries by"><span class="grey">Rank by</span> <button class="linkish" data-by="n" aria-pressed="${X.by === 'n'}">documents</button> · <button class="linkish" data-by="share" aria-pressed="${X.by === 'share'}">share of its documents</button> · <button class="linkish" data-aclear>Back to all countries</button></span></div>
+    outEl.innerHTML = `<div class="across-head"><p>${lk ? `Wording like <b>${name}</b>: the ${num(r.top.length)} closest passages are in ${num(total)} documents from ${num(rows.length)} countries` : `<b>${name}</b>: ${num(total)} documents in ${num(rows.length)} countries`}${X.wide ? '' : ', not counting reports that cover 10 or more countries'}.</p><span class="across-by small" role="group" aria-label="Rank countries by"><span class="grey">Rank by</span> <button class="linkish" data-by="n" aria-pressed="${X.by === 'n'}">documents</button> · <button class="linkish" data-by="share" aria-pressed="${X.by === 'share'}">share of its documents</button> · <button class="linkish" data-aclear>Back to all countries</button></span></div>
+      ${lk ? '<section class="near-list" aria-labelledby="near-h"><h3 class="h" id="near-h">Closest passages, anywhere</h3><ol class="nearp"></ol><button class="linkish small near-more" hidden>Ten more</button></section><h3 class="h across-by-h">By country</h3>' : ''}
       ${rows.length ? `<div class="across-cols grey small"><span>Country</span><span>Documents</span><span>Of its documents</span><span>By year published, ${lo}–${hi}</span></div>
       <ol class="across-list">${rows.slice(0, 15).map(row).join('')}</ol>
       ${rows.length > 15 ? `<details class="across-more"><summary>All ${num(rows.length)} countries</summary><ol class="across-list" start="16">${rows.slice(15).map(row).join('')}</ol></details>` : ''}`
       : '<p class="grey">No country\'s documents hold this. Check the spelling, or try a word in the language of the reports.</p>'}
-      <p class="grey small across-note">${X.q ? `Counts are documents whose text, or its machine translation, holds your words: a phrase in quotes as words next to each other, other words anywhere in the document. ${/"/.test(X.q) || !/\s/.test(X.q.trim()) ? '' : '<b>For an exact phrase, put it in quotes.</b> '}Opening a country gives the passages; its count looks for the words within one passage, so it can be lower.` : 'Counts are documents with at least one passage filed under this topic, by a heading or by its wording; reference lists are left out.'} Large collections have more of everything: the share of a country's documents is often the fairer comparison.${r.notes.length ? ' Not looked up here: ' + r.notes.map(esc).join('; ') + '.' : ''}</p>`;
+      <p class="grey small across-note">${lk ? 'Similar wording is machine-made. It finds the passages whose wording is closest to your phrase, in any language, and counts their documents per country; it can miss passages and include loose ones. The country counts are among the closest passages, not totals. Your phrase stays on your computer.' : X.q ? `Counts are documents whose text, or its machine translation, holds your words: a phrase in quotes as words next to each other, other words anywhere in the document. ${/"/.test(X.q) || !/\s/.test(X.q.trim()) ? '' : '<b>For an exact phrase, put it in quotes.</b> '}Opening a country gives the passages; its count looks for the words within one passage, so it can be lower.` : 'Counts are documents with at least one passage filed under this topic, by a heading or by its wording; reference lists are left out.'} Large collections have more of everything: the share of a country's documents is often the fairer comparison.${r.notes.length ? ' Not looked up here: ' + r.notes.map(esc).join('; ') + '.' : ''}</p>`;
     outEl.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => open(b.dataset.open)));
     outEl.querySelector('[data-aclear]').addEventListener('click', clear);
+    if (lk) { X.near = r.top; X.shown = 0; X.seen = new Map(); morePassages(idx, outEl); outEl.querySelector('.near-more').onclick = () => morePassages(idx, outEl); }
     outEl.querySelectorAll('[data-by]').forEach(b => b.addEventListener('click', () => { X.by = b.dataset.by; run(false); }));
     main.querySelector('.az').hidden = true;
   }
   function clear() {
-    X.res = null; X.q = X.fam = ''; box.value = ''; sel.value = '';
+    X.res = null; X.near = null; X.q = X.fam = ''; box.value = ''; sel.value = '';
     outEl.hidden = true; outEl.innerHTML = ''; main.querySelector('.az').hidden = false;
     shade(main, null); X.show?.(null);
   }
@@ -234,4 +256,36 @@ function shade(main, rows) {
   fig.classList.toggle('across-on', !!rows);
   const q = new Map((rows || []).map((x, i, a) => [x.slug, 1 + Math.floor(5 * (a.length - 1 - i) / Math.max(1, a.length))]));
   fig.querySelectorAll('[data-slug]').forEach(el => { el.classList.remove('q1', 'q2', 'q3', 'q4', 'q5'); const v = q.get(el.dataset.slug); if (v) el.classList.add('q' + Math.min(5, v)); });
+}
+
+// The closest passages themselves, ten at a time: country, source, date, page; a click opens the page in that country.
+async function morePassages(idx, outEl) {
+  const list = outEl.querySelector('.nearp'), more = outEl.querySelector('.near-more');
+  if (!list || !X.near) return;
+  more.hidden = true;
+  const src = new Map(idx.sources.map(s => [String(s.k), s])), names = new Map(idx.countries.map(c => [c.slug, c.name]));
+  // The same sentence in a series' later editions is shown once, with a count of the others.
+  const add = [];
+  while (add.length < 10 && X.shown < X.near.length && X.shown < 400) {
+    const batch = X.near.slice(X.shown, X.shown + 30); X.shown += batch.length;
+    let ds;
+    try { ds = await details(batch); } catch { list.insertAdjacentHTML('beforeend', '<li class="grey small">These passages could not be loaded.</li>'); return; }
+    for (const p of ds) {
+      const key = p.src + '|' + p.text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim().slice(0, 90);
+      const had = X.seen.get(key);
+      if (had) { had.n++; const el = list.querySelector(`[data-rep="${had.i}"]`); if (el) el.textContent = `the same words in ${had.n} other ${had.n === 1 ? 'edition' : 'editions'} or reports by this source`; continue; }
+      if (add.length >= 10) continue;
+      const i = X.seen.size; X.seen.set(key, { i, n: 0 }); add.push([p, i]);
+    }
+  }
+  list.insertAdjacentHTML('beforeend', add.map(([p, i]) => {
+    const s = src.get(String(p.src)), where = p.slugs.filter(x => names.has(x)), slug = where[0];
+    const cn = where.length > 3 ? `${esc(names.get(slug))} and ${where.length - 1} other countries` : where.map(x => esc(names.get(x))).join(', ');
+    return `<li><p class="meta"><b>${cn || 'a country being prepared'}</b> · ${esc(s?.short || s?.name || '')} · ${esc(p.date || 'undated')}${p.pg ? ` · p. ${p.pg}` : ''}</p>
+      <blockquote class="src">${esc(p.text)}${p.text.length >= 240 ? '…' : ''}</blockquote>
+      <p class="foot"><span class="otitle grey small" title="${esc(p.title || '')}">${esc(p.title || '')}</span>${p.mt ? ` <span class="mlabel">machine translated from ${esc(p.lang)}</span>` : ''}<span class="grey small rep" data-rep="${i}"></span>${slug ? ` <button class="pagelink" data-np="${esc(slug)}|${p.id}.${p.k}|${p.pg || 1}">Open the page ▸</button>` : ''}</p></li>`;
+  }).join(''));
+  for (const [, i] of add) { const h = [...X.seen.values()].find(v => v.i === i); const el = list.querySelector(`[data-rep="${i}"]`); if (h?.n && el) el.textContent = `the same words in ${h.n} other ${h.n === 1 ? 'edition' : 'editions'} or reports by this source`; }
+  list.querySelectorAll('[data-np]:not([data-w])').forEach(b => { b.dataset.w = 1; b.onclick = () => { const [c, key, pg] = b.dataset.np.split('|'); set({ c, p: key, pg }); }; });
+  more.hidden = X.shown >= X.near.length || X.shown >= 400 || list.children.length >= 100;
 }
