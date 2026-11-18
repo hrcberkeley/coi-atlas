@@ -60,7 +60,7 @@ export async function renderSide(app, el) {
     ${silent.length ? `<p class="silence"><span class="grey">Sources with nothing on this (${silent.length}):</span> ${silent.map(s => esc(s.short)).join(', ')}</p>` : ''}
     ${hidden.size ? `<p class="grey small">Hidden: ${[...hidden].map(k => `${esc(app.src(k).short)} <button class="linkish" data-unhide="${esc(k)}">show</button>`).join(' · ')}</p>` : ''}
     ${(state.q.trim() || state.fm || state.tp) && !state.lk ? `<p class="small order" role="group" aria-label="Order of passages in lists"><span class="grey">Lists show</span> <button class="linkish" data-ord=""${state.o === 'n' ? '' : ' aria-pressed="true"'}>${state.q.trim() ? 'best match for your words first' : 'clearest on the topic first'}</button> · <button class="linkish" data-ord="n"${state.o === 'n' ? ' aria-pressed="true"' : ''}>Newest first</button></p>` : ''}
-    <div class="who-body"><p class="grey small" role="status">Reading the passages…</p></div>
+    <div class="who-body"><p class="busy" role="status">Reading the passages…</p></div>
   </div>`;
   el.querySelector('[data-back]').onclick = back;
   el.querySelectorAll('[data-ord]').forEach(b => b.onclick = () => set({ o: b.dataset.ord }));
@@ -132,7 +132,7 @@ function wireRows(app, el, body, sel) {
     box.hidden = false; b.setAttribute('aria-expanded', 'true'); b.textContent = b.textContent.replace('▾', '▴');
     if (box.dataset.done) return;
     box.dataset.done = 1;
-    box.innerHTML = '<p class="grey small">Loading…</p>';
+    box.innerHTML = '<p class="busy" role="status">Loading…</p>';
     const row = b.closest('.wrow');
     const shownKeys = new Set([...row.querySelectorAll('.wpair .card')].map(c => c.dataset.key));
     const { items } = await ask({ type: 'list', q: app.q, sources: [b.dataset.more], years: sel.years, offset: 0, limit: 2000, ord: ordOf() });

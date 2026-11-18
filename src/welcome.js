@@ -203,15 +203,15 @@ async function wireAcross(main, idx) {
   async function run(fromInputs = true) {
     if (fromInputs) { X.q = box.value.trim(); X.fam = X.q ? '' : sel.value; }
     if (!X.q && !X.fam) return clear();
-    outEl.hidden = false; outEl.innerHTML = '<p class="grey small" role="status">Looking across countries…</p>';
+    outEl.hidden = false; outEl.innerHTML = '<p class="busy" role="status">Looking across countries…</p>';
     let r;
     const lk = X.q && X.mode === 'lk';
     if (lk) {
-      embedListeners.progress = m => { if (m.total) outEl.innerHTML = `<p class="grey small" role="status">Preparing the wording model in your browser, once per visit (about 135 MB): ${Math.round(100 * m.loaded / m.total)}%…</p>`; };
+      embedListeners.progress = m => { if (m.total) outEl.innerHTML = `<p class="busy" role="status">Preparing the wording model in your browser, once per visit (about 135 MB): ${Math.round(100 * m.loaded / m.total)}%…</p>`; };
       try {
         const e = await embed(X.q);
         if (!e.vec) throw new Error(e.message || 'no vector');
-        outEl.innerHTML = '<p class="grey small" role="status">Finding the closest wording in every country…</p>';
+        outEl.innerHTML = '<p class="busy" role="status">Finding the closest wording in every country…</p>';
         r = await lookNear(e.vec, X.wide);
       } catch (err) { outEl.innerHTML = `<p class="grey small">Similar wording could not run here (${esc(err.message || err)}). Try exact words, or open a country.</p>`; return; }
       finally { embedListeners.progress = null; }

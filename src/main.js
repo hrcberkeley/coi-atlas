@@ -330,6 +330,7 @@ let renderSeq = 0, lastSel = '';
 async function render() {
   const my = ++renderSeq;
   read();
+  if (!app.idx) main.innerHTML = '<p class="busy" role="status">Loading the atlas…</p>';
   app.idx ||= await data.index().catch(e => ({ error: e, countries: [], sources: [] }));
   if (app.idx.error) { main.innerHTML = `<p class="empty">The atlas data could not be loaded (${esc(app.idx.error.message)}).</p>`; return; }
   app.srcMap ||= new Map(app.idx.sources.map(s => [String(s.k), s]));
@@ -343,6 +344,7 @@ async function render() {
     return;
   }
   let S;
+  if (app.S?.slug !== state.c) { const nm = app.idx.countries.find(c => c.slug === state.c)?.name || 'this country'; main.innerHTML = `<p class="busy" role="status">Loading the reports on ${esc(nm)}…</p>`; }
   try { S = await data.slice(state.c); } catch (e) {
     caseline();
     main.innerHTML = `<p class="empty">No data for this country yet (${esc(e.message)}).</p>`; return;
@@ -389,7 +391,7 @@ async function render() {
     const key = JSON.stringify([state.c, state.y, state.l, state.hd, state.sp, state.dc, qKey, ready, !!app.lk?.ready, app.T?.total ?? -1]);   // redraw once a phrase is ready and its counts are in
     if (main.dataset.side !== key) {
       main.dataset.side = key;
-      if (!ready) { main.innerHTML = `<div class="side"><p class="grey small loading" role="status">${counterLine(app)}</p></div>`; return; }
+      if (!ready) { main.innerHTML = `<div class="side"><p class="busy" role="status">${counterLine(app)}</p></div>`; return; }
       await renderSide(app, main);
     }
   } else {

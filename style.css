@@ -102,9 +102,12 @@ main { padding: 16px 24px 48px; }
 .bar { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
 .counter { font-size: 14px; color: var(--ink); font-weight: 500; }
 .progress { color: var(--grey); font-size: 12px; margin-left: 8px; }
-.progress::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--grey); margin-right: 6px; vertical-align: 1px; animation: pulse 1.2s ease-in-out infinite; }
+.busy { color: var(--ink); font-size: 15px; padding: 24px 0; }
+.progress::before, .busy::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--grey); margin-right: 6px; vertical-align: 1px; animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .25; } }
-@media (prefers-reduced-motion: reduce) { .progress::before { animation: none; } }
+#main > .busy, .side > .busy { text-align: center; padding: 22vh 0; font-size: 16px; }
+.busy::before { width: 8px; height: 8px; margin-right: 10px; vertical-align: 1px; background: var(--brand); }
+@media (prefers-reduced-motion: reduce) { .progress::before, .busy::before { animation: none; } }
 .controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 .ranges button { color: var(--grey); padding: 3px 8px; border-radius: 3px; font-size: 12.5px; }
 .ranges button:hover:not(:disabled) { color: var(--ink); background: var(--line); }
