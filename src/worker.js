@@ -33,14 +33,14 @@ function ensure(y) {
         }
       }
       // Passage classifier, revision 7: {v: 2, c: two chars per passage of p/<y>.json} — family letter (A = 0) or "-" not content or "." not scored,
-      // then strength 0-9. Not content (strength >= 6) leaves topic views; an unfiled passage joins its family at strength >= 6 (p.fw: by wording).
+      // then strength 0-9. Junk (strength >= 7) leaves topic views; an unfiled passage joins its family at strength >= 6 (p.fw: by wording).
       if (wr.v === 2) {
         const c = wr.c || '';
         ps.forEach((p, i) => {
           const f = c[2 * i], s = +c[2 * i + 1];
           if (!f || f === '.') return;
           p.ws = s;
-          if (f === '-') { if (s >= 6) p.nc = 1; return; }
+          if (f === '-') { if (s >= 7) p.nc = 1; return; }
           p.wc = f.charCodeAt(0) - 65;
           if (!p.fm && s >= 6) { p.fm = [p.wc]; p.fw = [p.wc]; }
         });
