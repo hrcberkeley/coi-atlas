@@ -167,7 +167,8 @@ const vecReady = () => order.every(y => vecs[y]);
 
 // Topic strength: a heading or question filing (10) above a filing by wording alone, then the classifier's strength for that family.
 const topicOf = q => (q.fam !== '' && q.fam != null ? +q.fam : q.topic ? topicFam[q.topic] ?? null : null);
-const tscore = (p, f) => ((p.fw || []).includes(f) ? 0 : 10) + (p.wc === f ? p.ws : 0);
+// A bare heading or fragment (under 60 characters) sinks below real text.
+const tscore = (p, f) => ((p.fw || []).includes(f) ? 0 : 10) + (p.wc === f ? p.ws : 0) - (p.t.length < 60 ? 12 : 0);
 const slim = p => { const { _l, ...rest } = p; const prev = byKey.get(p.d + '.' + (p.k - 1)); if (prev) rest.bt = prev.t.slice(0, 160); return rest; };
 const newestFirst = (a, b) => {
   const da = docs[a.d].date || '', db = docs[b.d].date || '';
