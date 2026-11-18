@@ -80,8 +80,8 @@ export const kindOf = s => ({ government: 'gov', igo: 'int', 'eu-asylum-agency':
 // A later edition of the same series exists (title series `ed`, oldest first, or the catalogue's `next`).
 // A report filed under many countries (ecoi.net lists them in `also`).
 export const WIDE = 10;
-// Reports that cover many countries are hidden by default in a topic view (mc=0 shows them).
-export const singleOn = s => s.mc === '1' || (s.mc !== '0' && !!(s.tp || s.fm));
+// Reports that cover many countries are hidden by default in a topic view and in the Topics tab (mc=0 shows them).
+export const singleOn = s => s.mc === '1' || (s.mc !== '0' && !!(s.tp || s.fm || s.rm === 't'));
 export const wide = doc => (doc.also?.length || 0) >= WIDE;
 
 export const superseded = doc => (Array.isArray(doc.ed) && doc.ed.length ? String(doc.ed.at(-1)[0]) !== String(doc.id) : doc.next != null);
@@ -164,7 +164,7 @@ export function addPassages(T, ps, ctx, q) {
     T.total++;
     if (opened && opened.has(doc.id + '.' + p.k)) T.opened++;
     // The topic lane: the same counts with families ('f<id>') and topics ('t<id>') as rows.
-    if (p.fm) {
+    if (p.fm && !p.nc) {
       const L = (T.topic ||= { cells: {}, ty: {}, cdocs: {}, rows: {}, docs: {}, dh: {}, _last: {} });
       for (const f of p.fm) {
         const key = 'f' + f;
@@ -174,7 +174,7 @@ export function addPassages(T, ps, ctx, q) {
         dd[p.d] = (dd[p.d] || 0) + 1;
       }
     }
-    if (tp) {
+    if (tp && !p.nc) {
       const L = (T.topic ||= { cells: {}, ty: {}, cdocs: {}, rows: {}, docs: {}, dh: {}, _last: {} });
       tp.forEach((id, j) => {
         const key = 't' + id;

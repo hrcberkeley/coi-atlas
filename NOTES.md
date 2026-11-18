@@ -317,3 +317,4 @@ Rule lifted for topics (DESIGN, 17 Nov). Qwen2.5-14B on Kaggle labelled 57,118 s
 Totals: 9.46M passages scored: 2.43M junk (0.96M of them had a heading filing), 4.00M heading/question filed, 0.96M by wording, 2.07M unfiled (about 71% of real content in a topic).
 Judged (audit/passages7, 480 items, 4 Sonnet judges, 60 planted wrong labels caught 93%): junk hidden 99% right among decided (91% clearly); wording filings 89% (83% clearly); heading filings kept 83% (78% clearly; bare headings are the main error).
 Order matters: topics_q.py rewrites topics.json, so run passage_family.py apply after it.
+Follow-up (re-scout): the Topics-tab lane now skips junk passages and, like topic views, hides reports covering 10+ countries by default (`singleOn` includes rm=t), so lane counts equal list totals (Chile Security 17 = 17, Human rights defenders 196 = 196).

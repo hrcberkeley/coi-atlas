@@ -53,7 +53,7 @@ export function counterLine(app) {
   const nt = state.t ? `<span class="you"> · types: ${state.t.split(',').filter(c => c && c !== 'none').length} of ${shownTypes(app).length}</span>` : '';
   const nf = activeFilters() ? `<span class="you"> · filters: ${activeFilters()} on</span>` : '';
   // The welcome map counts every document; here only those with text of their own to show.
-  const all = app.S?.docs.length, bare = !state.q && !state.lk && !state.fm && !state.tp && !state.w && !state.t && !state.r && !activeFilters();
+  const all = app.S?.docs.length, bare = !singleOn(state) && !state.q && !state.lk && !state.fm && !state.tp && !state.w && !state.t && !state.r && !activeFilters();
   const ofAll = bare && all > nDocs ? ` <span class="grey" title="${num(all - nDocs)} more documents have no text of their own to show: scans without readable text, or text that only repeats other reports.">of ${num(all)}</span>` : '';
   return `<span class="counter tnum">${plural(T.total, 'passage', 'passages')} · ${plural(nDocs, 'document', 'documents')}${ofAll} · ${plural(nSrc, 'source', 'sources')}${opened}${nt}${nf}</span>${progress(app)}`;
 }
@@ -427,7 +427,7 @@ function wire(app, el) {
     const k = b.dataset.f;
     app.refocus = `[data-f="${k}"][value="${CSS.escape(b.value)}"]`;
     if (k === 'le') return set({ le: b.checked ? '1' : '' });
-    if (k === 'mc') return set({ mc: b.checked ? '1' : (state.tp || state.fm) ? '0' : '' });
+    if (k === 'mc') return set({ mc: b.checked ? '1' : (state.tp || state.fm || state.rm === 't') ? '0' : '' });
     set({ [k]: [...ww.querySelectorAll(`[data-f="${k}"]:checked`)].map(x => x.value).join(','), y: '' });
   }));
   ww.querySelectorAll('[data-fy]').forEach(b => b.addEventListener('change', () => {
