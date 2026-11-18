@@ -131,7 +131,7 @@ export function renderLandscape(app, el) {
 
   const hist = years.map(y => {
     const n = colTotal(y);
-    return `<td${depAttr(y, app)}><span class="hbar" style="height:${n ? Math.max(2, Math.round((n / colMax) * 24)) : 0}px" title="${y}: ${plural(n, 'passage', 'passages')}"></span></td>`;
+    return `<td aria-hidden="true"${depAttr(y, app)}><span class="hbar" style="height:${n ? Math.max(2, Math.round((n / colMax) * 24)) : 0}px" title="${y}: ${plural(n, 'passage', 'passages')}"></span></td>`;
   }).join('');
   const ylabels = years.map((y, i) =>
     `<th scope="col"${depAttr(y, app)} class="${!S.s.size && S.y === y ? 'on' : ''}"><button class="yr${L && String(L.y) === y ? ' you' : ''}" data-y="${y}" data-i="${i}" aria-label="${y === 'undated' ? 'Undated' : y}: compare sources for this year, ${plural(colTotal(y), 'passage', 'passages')}">${years.length <= 45 || y === 'undated' || (L && String(L.y) === y) || (+y % 5 === 0 && !(L && Math.abs(+y - L.y) === 1)) ? yy(y) : ''}</button></th>`).join('');
@@ -175,7 +175,6 @@ export function renderLandscape(app, el) {
             <button data-range="recent">Recent</button>
             ${state.r ? '<button data-range="">All years</button>' : ''}
           </span>
-          ${app.S.hasTopics ? `<span class="modes rowsmode" role="radiogroup" aria-label="Rows"><span class="lab">Rows</span><button role="radio" aria-checked="${!topicMode}" data-rm="">Institutions</button><button role="radio" aria-checked="${topicMode}" data-rm="t">Topics</button></span>` : ''}
           <button class="filters-btn" data-filters aria-expanded="${filtersOpen}" aria-controls="filters">${filtersOpen ? 'Hide filters' : 'Show filters'}${activeFilters() ? ` <span class="you">(${activeFilters()} on)</span>` : ''}</button>
           <label class="clock"><span class="sr-only">Year clock</span><select data-ck>
             <option value=""${state.ck !== 'm' ? ' selected' : ''}>Year published</option>
@@ -189,7 +188,7 @@ export function renderLandscape(app, el) {
         <caption class="sr-only">Passages matching the case line, by source and ${state.ck === 'm' ? 'year the text mentions' : 'year published'}. Cell height is the number of passages; colour is the document type. A cell opens that institution's documents for that year; a year label compares sources for that year.</caption>
         <colgroup><col class="c-who"><col span="${years.length}"><col class="c-tot"></colgroup>
         <thead>
-          <tr class="hist" aria-hidden="true"><td></td>${hist}<td></td></tr>
+          <tr class="hist"><td class="rows-cell">${app.S.hasTopics ? `<span class="rowtabs" role="radiogroup" aria-label="Rows show"><button role="radio" aria-checked="${!topicMode}" data-rm="">Institutions</button><button role="radio" aria-checked="${topicMode}" data-rm="t">Topics</button></span>` : ''}</td>${hist}<td aria-hidden="true"></td></tr>
           <tr class="years"><th scope="col" class="who-h">${state.ck === 'm' ? 'Year the text mentions' : 'Year published'}</th>${ylabels}<th scope="col" class="tot-h">Passages</th></tr>
         </thead>
         ${body}
