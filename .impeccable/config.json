@@ -11,6 +11,31 @@
         ],
         "createdAt": "2026-11-18T09:35:11.060Z",
         "reason": "Claude: inline kbd/code chips (1px x 6px padding) inside running text; conventional for inline code, all block containers have 12-18px padding"
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-18T21:40:00.000Z",
+        "reason": "Claude: the atlas's own design system (style.css); the guide matches it at the user's request"
+      },
+      {
+        "rule": "pulsing-dot",
+        "value": "*",
+        "files": [
+          "guide.html",
+          "style.css"
+        ],
+        "createdAt": "2026-11-18T21:40:00.000Z",
+        "reason": "Claude: the dot shows only while data is really loading, tied to live progress; still under reduced motion"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "guide.html"
+        ],
+        "createdAt": "2026-11-18T21:40:00.000Z",
+        "reason": "Claude: inline kbd chips in running text; block containers have 10-16px padding"
       }
     ]
   }

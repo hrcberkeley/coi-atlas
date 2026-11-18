@@ -35,7 +35,9 @@ function ensure(y) {
       // Passage classifier, revision 7: {v: 2, c: two chars per passage of p/<y>.json} — family letter (A = 0) or "-" not content or "." not scored,
       // then strength 0-9. Junk (strength >= 7) leaves topic views; an unfiled passage joins its family at strength >= 6 (p.fw: by wording).
       if (wr.v === 2 || wr.v === 3) {
-        const c = wr.c || '';
+        const c = wr.c || '', cut = wr.cut ?? 6;
+        // Revision 8: heading filings the wording model contradicts (under 5% for that family) are dropped.
+        for (const [i, f] of wr.hv || []) { const p = ps[i]; if (p?.fm) { p.fm = p.fm.filter(x => x !== f); if (!p.fm.length) delete p.fm; } }
         ps.forEach((p, i) => {
           const f = c[2 * i], s = +c[2 * i + 1];
           if (!f || f === '.') return;
@@ -46,7 +48,7 @@ function ensure(y) {
           // Revision 8: the main family by wording joins at strength >= 6 even under a heading; a second family is written only when it qualifies;
           // k: up to two kinds of information ("1".."8").
           const add = f => { if (!(p.fm || []).includes(f)) { (p.fm ||= []).push(f); (p.fw ||= []).push(f); } };
-          if (s >= 6) add(p.wc);
+          if (s >= cut) add(p.wc);
           const f2 = wr.c2?.[2 * i];
           if (f2 && f2 !== '.') { p.wc2 = f2.charCodeAt(0) - 65; p.ws2 = +wr.c2[2 * i + 1]; add(p.wc2); }
           const k = wr.k?.slice(2 * i, 2 * i + 2).replace(/0/g, '');
@@ -252,7 +254,10 @@ async function who(m) {
   const rows = [];
   for (const [s, all] of by) {
     // the two picks come from passages about this country when the source has any
-    const own = all.filter(p => !p.oc), list = own.length ? own : all;
+    // With a topic: picks come from strong filings (a heading, or the wording model at 0.7 or more) when the source has any.
+    const own0 = all.filter(p => !p.oc), base = own0.length ? own0 : all;
+    const strongF = f == null ? base : base.filter(p => !(p.fw || []).includes(f) || (p.wc === f && p.ws >= 7) || (p.wc2 === f && p.ws2 >= 7));
+    const list = strongF.length ? strongF : base;
     const docsN = new Set(all.map(p => p.d)).size;
     const pickNew = l => best(l, rank ? closer : newer);
     const pickOld = l => best(l, rank ? closer : older);
