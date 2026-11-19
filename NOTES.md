@@ -339,3 +339,11 @@ Filing (w/ v3): heading filings kept unless the wording model gives that family 
 Measured (audit/passages8, Sonnet judges, 480 random passages, strict: a topic on reference material counts as wrong): revision 7 precision 64%, recall 34%; revision 8 as applied 66%, 48%. Variants tried in `audit/passages8/variants.py` (headings alone 59%/25%: long sections pass their family to unrelated passages). Kinds 63% precision, 41% recall. Reference material: 134 of 198 hidden; 13 of 282 real passages wrongly hidden. Two judges: same main topic 58/61. Planted wrong labels caught 27/40 (weaker judges than revision 7's 93%), so precision may be overstated. Per-family precision (14 filed passages each) and coverage in audit/passages8/results.json; weakest: arrival after transfer, human rights defenders, elections, women, journalists, exit and entry.
 App: worker reads v3 (cut, c2, k, hv, o); kind filter "Kind of information" (state kd); compare picks prefer strong filings. across.py --families rewrites families.json alone (main() would delete the vector files).
 Next lever: a fine-tuned small encoder (e5-small, multi-label) instead of linear probes, trained on the Qwen labels on Kaggle and run on every passage.
+
+## 19 Nov — Topics revision 9
+
+- Teacher changed from Qwen2.5-14B-AWQ to Qwen3-14B-AWQ (non-thinking), shown the section heading and the passage before (feasibility/cloud_multi3, private Kaggle kernel coi-passage-multi9). Students, rules and cut-offs unchanged, except kinds now cut at 0.75.
+- Teachers' own labels on the 480 judged passages (topic P/R/F1): Qwen2.5 46/57/51, Qwen3 57/69/62, Qwen3 + context 59/71/64 (feasibility/cloud_teach). Gemma 4 12B does not run on Kaggle T4s (fp16: no room for the KV cache; 4-bit: Triton kernel needs 96 KB shared memory, T4 has 64 KB).
+- Applied layer: topics 69% precision, 49% recall (rev 8: 66/48). Kinds 63/44 (rev 8: 63/41). Reference material unchanged (same junk model).
+- Tried and dropped: neighbour + heading vectors as student features (audit/passages8/context.py): 64/47. The teacher labelled passages alone, so the students cannot use context the labels never reflected.
+- Revision 8 files and model: atlas/build/w_rev8/.
